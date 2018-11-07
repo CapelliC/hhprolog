@@ -1,15 +1,14 @@
 /*
-Description: hitchhiker Prolog
-
-Original Java code by Paul Tarau.
-The reference document: http://www.cse.unt.edu/~tarau/research/2017/eng.pdf
-Rewritten to vanilla Javascript.
-
-Author: Carlo Capelli
-Version: 1.0.0
-License: MIT
-Copyright (c) 2018 Carlo Capelli
-*/
+ * Description: hitchhiker Prolog
+ * 
+ * Original Java code by Paul Tarau.
+ * The reference document: http://www.cse.unt.edu/~tarau/research/2017/eng.pdf
+ * Rewritten to vanilla Javascript.
+ * 
+ * Version: 1.0.0
+ * License: MIT
+ * Copyright (c) 2018 Carlo Capelli
+ */
 
 ;(function(context) {
 "use strict";
@@ -183,7 +182,12 @@ const BAD = 7
 class Engine {
 
   // Builds a new engine from a natural-language style assembler.nl file
-  constructor(asm_nl_source) {
+  constructor(options) {
+
+    if (options.writeln === undefined)
+        options.writeln = pp
+    this.options = options
+    
     this.syms = []
     this.makeHeap()
     this.trail = []
@@ -191,7 +195,7 @@ class Engine {
     this.spines = []
 
     // trimmed down clauses ready to be quickly relocated to the heap
-    this.clauses = this.dload(asm_nl_source)
+    this.clauses = this.dload(options.nl_source)
     
     this.cls = toNums(this.clauses)
     this.query = this.init()
@@ -405,7 +409,7 @@ class Engine {
   ppTrail() {
     for (var i = 0; i <= array_last(this.trail, -1); i++) {
       var t = this.trail[i]
-      pp("trail[" + i + "]=" + this.showCell(t) + ":" + this.showTerm(t))
+      this.options.writeln("trail[" + i + "]=" + this.showCell(t) + ":" + this.showTerm(t))
     }
   }
 
@@ -804,9 +808,9 @@ class Engine {
       if (null == A)
         break
       if (print_ans)
-        pp("[" + ctr + "] " + "*** ANSWER=" + this.showTerm(A))
+        this.options.writeln("[" + ctr + "] " + "*** ANSWER=" + this.showTerm(A))
     }
-    pp("TOTAL ANSWERS=" + ctr)
+    this.options.writeln("TOTAL ANSWERS=" + ctr)
   }
   vcreate(l) {
     var vss = []
@@ -830,14 +834,14 @@ class Engine {
     var imaps = Array(vmaps.length)
     for (var i = 0; i < clauses.length; i++) {
       var c = clauses[i]
-      pp("!!!xs=" + T(c.xs) + ":" + this.showCells1(c.xs) + "=>" + i)
+      this.options.writeln("!!!xs=" + T(c.xs) + ":" + this.showCells1(c.xs) + "=>" + i)
       this.put(imaps, vmaps, c.xs, i + 1) // $$$ UGLY INC
-      pp(T(imaps))
+      this.options.writeln(T(imaps))
     }
-    pp("INDEX")
-    pp(T(imaps))
-    pp(T(vmaps))
-    pp("")
+    this.options.writeln("INDEX")
+    this.options.writeln(T(imaps))
+    this.options.writeln(T(vmaps))
+    this.options.writeln("")
     return imaps
   }
 }
@@ -936,14 +940,14 @@ class Prog extends Engine {
   }
   
   ppCode() {
-    pp("\nSYMS:")
-    pp(this.syms)
-    pp("\nCLAUSES:\n")
+    this.options.writeln("\nSYMS:")
+    this.options.writeln(this.syms)
+    this.options.writeln("\nCLAUSES:\n")
     for (var i = 0; i < this.clauses.length; i++) {
       var C = this.clauses[i]
-      pp("[" + i + "]:" + this.showClause(C))
+      this.options.writeln("[" + i + "]:" + this.showClause(C))
     }
-    pp("")
+    this.options.writeln("")
   }
   showClause(s) {
     var r = ''
@@ -983,13 +987,13 @@ class Prog extends Engine {
   }
   ppGoals(bs) {
     while (bs.length) {
-      pp(this.showTerm(bs[0]))
+      this.options.writeln(this.showTerm(bs[0]))
       bs = bs.slice(1);
     }
   }
   ppc(S) {
     var bs = S.gs
-    pp("\nppc: t=" + S.ttop + ",k=" + S.k + "len=" + bs.length)
+    this.options.writeln("\nppc: t=" + S.ttop + ",k=" + S.k + "len=" + bs.length)
     this.ppGoals(bs)
   }
 }

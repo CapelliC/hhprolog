@@ -13,50 +13,82 @@ Copyright (c) 2018 Carlo Capelli
 </head>
 <body>
     <style>
+        /*
         .fleft { float: left; }
         .half { width: 50%; }
         .shadowbox {
-            /*width: 15em;*/
+            width: 15em;
             border: 1px solid #333;
             box-shadow: 8px 8px 5px #444;
             padding: 8px 12px;
             background-image: linear-gradient(180deg, #fff, #ddd 40%, #ccc);
         }
+        */
+        .main {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+        }
+        .script {
+            box-shadow: 8px 8px 5px #444;
+            background-image: linear-gradient(180deg, #fff, #ddd 40%, #ccc);
+        }
+        .spacing {
+            border: 1px solid #333;
+            padding: 8px 12px;
+        }
     </style>
     
-    <select id=choice_script>
-        <option>?</option>
-        <option id=mini>mini</option>
-        <option id=memb>memb</option>
-        <option id=add>add</option>
-        <option id=queens>queens</option>
-        <option id=sud4x>sud4x</option>
-        <option id=perms>perms</option>
-        <option id=lambdas>lambdas</option>
-        <option id=mperms>mperms</option>
-        <option id=combine>combine</option>
-    </select>
-    
-    <div>
-    <div id=script_pl class="half shadowbox">
+    <div class="main">
+        <div class="controls spacing">
+            <select id=choice_script>
+                <option>?</option>
+                <option id=mini>mini</option>
+                <option id=memb>memb</option>
+                <option id=add>add</option>
+                <option id=queens>queens</option>
+                <option id=sud4x>sud4x</option>
+                <option id=perms>perms</option>
+                <option id=lambdas>lambdas</option>
+                <option id=mperms>mperms</option>
+                <option id=combine>combine</option>
+            </select>
+            <button id=run disabled=true>Run</button>
+            <label>print solutions
+                <input id=print_sol type=checkbox>
+            </label>
+            <label>print VM code
+                <input id=print_vm_code type=checkbox>
+            </label>
+        </div>
+        <div class="script spacing">
+            <pre id=run_output></pre>
+        </div>
+        <div class="script spacing">
+            <pre id=script_pl></pre>
+        </div>
+        <div class="script spacing">
+            <pre id=script_nl></pre>
+        </div>
     </div>
-    <div id=script_nl class="half shadowbox">
-    </div>
-    </div>
-    <button id=run disabled=true>Run</button>
 <script>
 
 const trace = console.log
 
-choice_script.onchange = function(e) {
+choice_script.onchange = function() {
     const choice = choice_script.value
-    trace('choice_script', e, choice) //, scripts[choice].nl)
+    trace('choice_script', choice)
+    
     function ltrim(t) {
         return t.split('\n').map(l => l.substring(12)).join('\n')
     }
     if (choice !== '?') {
-        script_pl.innerHTML = `<pre>${ltrim(scripts[choice].pl)}</pre>`
-        script_nl.innerHTML = `<pre>${ltrim(scripts[choice].nl)}</pre>`
+        script_pl.innerHTML = ltrim(scripts[choice].pl)
+        script_nl.innerHTML = ltrim(scripts[choice].nl)
         run.disabled = false
     }
     else {
@@ -65,9 +97,29 @@ choice_script.onchange = function(e) {
         run.disabled = true
     }
 }
-run.onclick = function() {
-}
 
+run.onclick = function() {
+    trace('run', print_sol)
+    run_output.innerHTML = ''
+    
+    try {
+        const prog = new Prog({
+            writeln: function(l) {
+                run_output.innerHTML = run_output.innerHTML + `\n` + l
+            },
+            nl_source: script_nl.innerHTML,
+        })
+
+        if (print_vm_code.checked)
+            prog.ppCode()
+        const t0 = Date.now()
+        prog.run(print_sol.checked)
+        trace('elapsed secs', (Date.now() - t0) / 1000)
+    }
+    catch(e) {
+        alert(e)
+    }
+}
 
 const scripts = {
     // CC
