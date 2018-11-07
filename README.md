@@ -1,7 +1,9 @@
-# hhprolog
+# hitchhiker Prolog
 
-hitchhiker Prolog - an implementation of a novel virtual machine,
-by Paul Tarau (see http://www.cse.unt.edu/~tarau/research/2017/eng.pdf).
+An implementation of a novel Prolog virtual machine,
+proposed by Paul Tarau.
+
+See http://www.cse.unt.edu/~tarau/research/2017/eng.pdf for details.
 
 Ported to Javascript and C++ by CapelliC.
 
