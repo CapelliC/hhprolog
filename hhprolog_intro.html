@@ -13,17 +13,6 @@ Copyright (c) 2018 Carlo Capelli
 </head>
 <body>
     <style>
-        /*
-        .fleft { float: left; }
-        .half { width: 50%; }
-        .shadowbox {
-            width: 15em;
-            border: 1px solid #333;
-            box-shadow: 8px 8px 5px #444;
-            padding: 8px 12px;
-            background-image: linear-gradient(180deg, #fff, #ddd 40%, #ccc);
-        }
-        */
         .main {
             display: flex;
             flex-direction: row;
@@ -41,9 +30,12 @@ Copyright (c) 2018 Carlo Capelli
             border: 1px solid #333;
             padding: 8px 12px;
         }
+        .running {
+            cursor: wait;
+        }
     </style>
     
-    <div class="main">
+    <div id=main class="main">
         <div class="controls spacing">
             <select id=choice_script>
                 <option>?</option>
@@ -80,8 +72,9 @@ Copyright (c) 2018 Carlo Capelli
 const trace = console.log
 
 choice_script.onchange = function() {
+    run_output.innerHTML = ''
+
     const choice = choice_script.value
-    trace('choice_script', choice)
     
     function ltrim(t) {
         return t.split('\n').map(l => l.substring(12)).join('\n')
@@ -99,7 +92,6 @@ choice_script.onchange = function() {
 }
 
 run.onclick = function() {
-    trace('run', print_sol)
     run_output.innerHTML = ''
     
     try {
@@ -112,9 +104,17 @@ run.onclick = function() {
 
         if (print_vm_code.checked)
             prog.ppCode()
-        const t0 = Date.now()
-        prog.run(print_sol.checked)
-        trace('elapsed secs', (Date.now() - t0) / 1000)
+
+        run.disabled = true
+        main.classList.add('running')
+
+        setTimeout(function() {
+            const t0 = Date.now()
+            prog.run(print_sol.checked)
+            prog.options.writeln('elapsed secs:' + (Date.now() - t0) / 1000)
+            run.disabled = false
+            main.classList.remove('running')
+        }, 100)
     }
     catch(e) {
         alert(e)
@@ -381,12 +381,7 @@ const scripts = {
             nrev([],[]).
             nrev([X|Xs],Zs):-nrev(Xs,Ys),app(Ys,[X],Zs).
 
-            % goal(X):-eq(X,[1,2,3,4,5,6,7,8,9]),perm(X,P),nrev(P,X).
-
-            % goal(P):-eq(X,[1,2,3,4,5,6,7,8,9,10,11]),nrev(X,P),perm(X,P).
-
-
-            input([1,2,3,4,5,6,7,8,9,10,11]).
+            input([1,2,3,4,5,6,7,8]).
 
             goal(Y):-input(X),nrev(X,Y),perm(X,Y),perm(Y,X).
         `,
@@ -428,7 +423,7 @@ const scripts = {
               _1 lists X .
 
             input _0 and
-              _0 lists 1 2 3 4 5 6 7 8 9 10 11 .
+              _0 lists 1 2 3 4 5 6 7 8 .
 
             goal Y 
             if
@@ -452,9 +447,9 @@ const scripts = {
 
             genClosedLambdaTerm(L,T):-genLambda(T,[],L,zero).
 
-            nine(s(s(s(s(s(s(s(s(s(zero)))))))))).
+            four(s(s(s(s(zero))))).
 
-            goal(Lam):-nine(Size),genClosedLambdaTerm(Size,Lam).
+            goal(Lam):-four(Size),genClosedLambdaTerm(Size,Lam).
         `,
         nl: `
             genLambda X Vs N N 
@@ -487,20 +482,16 @@ const scripts = {
             if
               genLambda T nil L zero .
 
-            nine _0 and
+            four _0 and
               _0 holds s _1 and
               _1 holds s _2 and
               _2 holds s _3 and
               _3 holds s _4 and
-              _4 holds s _5 and
-              _5 holds s _6 and
-              _6 holds s _7 and
-              _7 holds s _8 and
-              _8 holds s zero .
+              _4 holds s zero .
 
             goal Lam 
             if
-              nine Size and
+              four Size and
               genClosedLambdaTerm Size Lam .
         `
     },
@@ -516,7 +507,7 @@ const scripts = {
             cls([perm([],[])|Tail],Tail).
             cls([perm([X|Xs],Zs),perm(Xs,Ys),sel(X,Zs,Ys)|Tail],Tail).  
                 
-            input([1,2,3,4,5,6,7,8,9,10,11],[11,10,9,8,7,6,5,4,3,2,1]).
+            input([1,2,3,4,5,6,7,8],[8,7,6,5,4,3,2,1]).
 
             goal(Y):-input(X,Y),metaint([perm(X,Y),perm(Y,X)]).
         `,
@@ -557,8 +548,8 @@ const scripts = {
               _6 holds sel X Zs Ys .
 
             input _0 _1 and
-              _0 lists 1 2 3 4 5 6 7 8 9 10 11 and
-              _1 lists 11 10 9 8 7 6 5 4 3 2 1 .
+              _0 lists 1 2 3 4 5 6 7 8 and
+              _1 lists 8 7 6 5 4 3 2 1 .
 
             goal Y 
             if
@@ -574,19 +565,10 @@ const scripts = {
         pl: `
             member(X,[X|_]).
             member(X,[_|L]):-member(X,L).
-            /*
-            maplist(_,[]).
-            maplist(P,[L1|L1s]) :- call(P,L1), maplist(P,L1s).
-            */
+
             maplist(_,[],[]).
             maplist(P,[L1|L1s],[L2|L2s]) :- call(P,L1,L2), maplist(P,L1s,L2s).
-            /*
-            maplist(_,[],[],[]).
-            maplist(P,[L1|L1s],[L2|L2s],[L3|L3s]) :- call(P,L1,L2,L3), maplist(P,L1s,L2s,L3s).
 
-            maplist(_,[],[],[],[]).
-            maplist(P,[L1|L1s],[L2|L2s],[L3|L3s],[L4|L4s]) :- call(P,L1,L2,L3,L4), maplist(P,L1s,L2s,L3s,L4s).
-            */
             combine(Ls,Rs) :- maplist(member,Rs,Ls).
             goal(R) :- combine([[1,2],[a,b],[8,9],[x,y]],R).
         `,
@@ -615,20 +597,14 @@ const scripts = {
             goal R 
             if
               combine _0 R and
-              _0 lists _1 _2 _3 and
+              _0 lists _1 _2 _3 _4 and
               _1 lists 1 2 and
               _2 lists a b and
-              _3 lists 8 9 .
+              _3 lists 8 9 and
+              _4 lists x y.
         `
     }
 };
-/*
-    const prog = new Prog(scripts.queens.nl)
-    //prog.ppCode()
-    const t0 = Date.now()
-    prog.run(false)
-    trace('elapsed secs', (Date.now() - t0) / 1000)
-*/
 
 </script>
 </body>
