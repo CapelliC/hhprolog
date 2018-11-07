@@ -18,7 +18,7 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     try {
-        string path = "/home/carlo/test/java/prologEngine/progs/";
+        string path = "../test/";
         string fname;
         bool print_ans;
 
