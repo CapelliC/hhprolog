@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<!--
+Author: Carlo Capelli
+Version: 1.0.0
+License: MIT
+Copyright (c) 2018 Carlo Capelli
+-->
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>hhprolog intro</title>
+    <script src="hhprolog.js"></script>
+</head>
+<body>
+    <style>
+        .fleft { float: left; }
+        .half { width: 50%; }
+        .shadowbox {
+            /*width: 15em;*/
+            border: 1px solid #333;
+            box-shadow: 8px 8px 5px #444;
+            padding: 8px 12px;
+            background-image: linear-gradient(180deg, #fff, #ddd 40%, #ccc);
+        }
+    </style>
+    
+    <select id=choice_script>
+        <option>?</option>
+        <option id=mini>mini</option>
+        <option id=memb>memb</option>
+        <option id=add>add</option>
+        <option id=queens>queens</option>
+        <option id=sud4x>sud4x</option>
+        <option id=perms>perms</option>
+        <option id=lambdas>lambdas</option>
+        <option id=mperms>mperms</option>
+        <option id=combine>combine</option>
+    </select>
+    
+    <div>
+    <div id=script_pl class="half shadowbox">
+    </div>
+    <div id=script_nl class="half shadowbox">
+    </div>
+    </div>
+    <button id=run disabled=true>Run</button>
+<script>
+
+const trace = console.log
+
+choice_script.onchange = function(e) {
+    const choice = choice_script.value
+    trace('choice_script', e, choice) //, scripts[choice].nl)
+    function ltrim(t) {
+        return t.split('\n').map(l => l.substring(12)).join('\n')
+    }
+    if (choice !== '?') {
+        script_pl.innerHTML = `<pre>${ltrim(scripts[choice].pl)}</pre>`
+        script_nl.innerHTML = `<pre>${ltrim(scripts[choice].nl)}</pre>`
+        run.disabled = false
+    }
+    else {
+        script_pl.innerHTML = ``
+        script_nl.innerHTML = ``
+        run.disabled = true
+    }
+}
+run.onclick = function() {
+}
+
+
+const scripts = {
+    // CC
+    mini: {
+        pl: `
+            a(1).
+            a(2).
+            goal(Y):-a(Y).
+        `,
+        nl: `
+            a 1 .
+            a 2 .
+            goal Y 
+            if
+              a Y .
+        `
+    },
+
+    memb: {
+        pl: `
+            memb(E,[E|_]).
+            memb(E,[_|T]) :- memb(E,T).
+
+            goal(E):-memb(E,[0,1,2,3,4,5,6,7,8,9,10,11]).
+        `,
+        nl: `
+            memb E _0 and
+              _0 holds list E _1 .
+
+            memb E _0 and
+              _0 holds list _1 T 
+            if
+              memb E T .
+
+            goal E 
+            if
+              memb E _0 and
+              _0 lists 0 1 2 3 4 5 6 7 8 9 10 11 .
+        `
+    },
+    
+    // PT
+    add: {
+        pl: `
+            add(0,X,X).
+            add(s(X),Y,s(Z)):-add(X,Y,Z).
+            
+            goal(R):-add(s(s(0)),s(s(0)),R).
+        `,
+        nl: `
+            add 0 X X .
+
+            add _0 Y _1 and
+              _0 holds s X and
+              _1 holds s Z 
+            if
+              add X Y Z .
+
+            goal R 
+            if
+              add _0 _1 R and
+              _0 holds s _2 and
+              _2 holds s 0 and
+              _1 holds s _3 and
+              _3 holds s 0 .
+        `,
+    },
+
+    queens: {
+        pl: `
+            place_queen(I,[I|_],[I|_],[I|_]).
+            place_queen(I,[_|Cs],[_|Us],[_|Ds]):-place_queen(I,Cs,Us,Ds).
+
+            place_queens([],_,_,_).
+            place_queens([I|Is],Cs,Us,[_|Ds]):-
+              place_queens(Is,Cs,[_|Us],Ds),
+              place_queen(I,Cs,Us,Ds).
+
+            gen_places([],[]).
+            gen_places([_|Qs],[_|Ps]):-gen_places(Qs,Ps).
+
+            qs(Qs,Ps):-gen_places(Qs,Ps),place_queens(Qs,Ps,_,_).
+
+            goal(Ps):-qs([0,1,2,3,4,5],Ps).
+        `,
+        nl: `
+            place_queen I _0 _1 _2 and
+              _0 holds list I _3 and
+              _1 holds list I _4 and
+              _2 holds list I _5 .
+
+            place_queen I _0 _1 _2 and
+              _0 holds list _3 Cs and
+              _1 holds list _4 Us and
+              _2 holds list _5 Ds 
+            if
+              place_queen I Cs Us Ds .
+
+            place_queens nil _0 _1 _2 .
+
+            place_queens _0 Cs Us _1 and
+              _0 holds list I Is and
+              _1 holds list _2 Ds 
+            if
+              place_queens Is Cs _3 Ds and
+              _3 holds list _4 Us and
+              place_queen I Cs Us Ds .
+
+            gen_places nil nil .
+
+            gen_places _0 _1 and
+              _0 holds list _2 Qs and
+              _1 holds list _3 Ps 
+            if
+              gen_places Qs Ps .
+
+            qs Qs Ps 
+            if
+              gen_places Qs Ps and
+              place_queens Qs Ps _0 _1 .
+
+            goal Ps 
+            if
+              qs _0 Ps and
+              _0 lists 0 1 2 3 4 5 .
+        `
+    },
+
+    sud4x: {
+        pl: `
+            s4x4([
+              [
+                 [S11,S12, S13,S14],
+                 [S21,S22, S23,S24],
+
+                 [S31,S32, S33,S34],
+                 [S41,S42, S43,S44]
+              ],
+              [
+                 [S11,S21, S31,S41],
+                 [S12,S22, S32,S42],
+
+                 [S13,S23, S33,S43],
+                 [S14,S24, S34,S44]
+              ],
+              [
+                 [S11,S12, S21,S22],
+                 [S13,S14, S23,S24],
+
+                 [S31,S32, S41,S42],
+                 [S33,S34, S43,S44]
+              ]
+            ]):-
+              true.
+
+            /* this generates the 288 puzzles - and solves one if given clues */
+            sudoku(Xss):-
+              s4x4([Xss|Xsss]),
+              map11(permute,[1,2,3,4],[Xss|Xsss]).
+
+            map1x(_,_,[]).
+            map1x(F,Y,[X|Xs]):- call(F,Y,X),map1x(F,Y,Xs).
+             
+            map11(_,_,[]).
+            map11(F,X,[Y|Ys]):-
+              map1x(F,X,Y),
+              map11(F,X,Ys).
+               
+            permute([],[]).
+            permute([X|Xs],Zs):-permute(Xs,Ys),ins(X,Ys,Zs).
+
+            ins(X,Xs,[X|Xs]).
+            ins(X,[Y|Xs],[Y|Ys]):-ins(X,Xs,Ys).
+
+
+            goal(Xss):-sudoku(Xss).
+        `,
+        nl: `
+            s4x4 _0 and
+              _0 lists _1 _2 _3 and
+              _1 lists _4 _5 _6 _7 and
+              _4 lists S11 S12 S13 S14 and
+              _5 lists S21 S22 S23 S24 and
+              _6 lists S31 S32 S33 S34 and
+              _7 lists S41 S42 S43 S44 and
+              _2 lists _8 _9 _10 _11 and
+              _8 lists S11 S21 S31 S41 and
+              _9 lists S12 S22 S32 S42 and
+              _10 lists S13 S23 S33 S43 and
+              _11 lists S14 S24 S34 S44 and
+              _3 lists _12 _13 _14 _15 and
+              _12 lists S11 S12 S21 S22 and
+              _13 lists S13 S14 S23 S24 and
+              _14 lists S31 S32 S41 S42 and
+              _15 lists S33 S34 S43 S44 .
+
+            sudoku Xss 
+            if
+              s4x4 _0 and
+              _0 holds list Xss Xsss and
+              map11 permute _1 _2 and
+              _1 lists 1 2 3 4 and
+              _2 holds list Xss Xsss .
+
+            map1x _0 _1 nil .
+
+            map1x F Y _0 and
+              _0 holds list X Xs 
+            if
+              F Y X and
+              map1x F Y Xs .
+
+            map11 _0 _1 nil .
+
+            map11 F X _0 and
+              _0 holds list Y Ys 
+            if
+              map1x F X Y and
+              map11 F X Ys .
+
+            permute nil nil .
+
+            permute _0 Zs and
+              _0 holds list X Xs 
+            if
+              permute Xs Ys and
+              ins X Ys Zs .
+
+            ins X Xs _0 and
+              _0 holds list X Xs .
+
+            ins X _0 _1 and
+              _0 holds list Y Xs and
+              _1 holds list Y Ys 
+            if
+              ins X Xs Ys .
+
+            goal Xss 
+            if
+              sudoku Xss .
+        `,
+    },
+
+    perms: {
+        pl: `
+            eq(X,X).
+
+            sel(X,[X|Xs],Xs).
+            sel(X,[Y|Xs],[Y|Ys]):-sel(X,Xs,Ys).
+
+            perm([],[]).
+            perm([X|Xs],Zs):-
+              perm(Xs,Ys),
+              sel(X,Zs,Ys).  
+
+            app([],Xs,Xs).
+            app([X|Xs],Ys,[X|Zs]):-app(Xs,Ys,Zs).
+
+            nrev([],[]).
+            nrev([X|Xs],Zs):-nrev(Xs,Ys),app(Ys,[X],Zs).
+
+            % goal(X):-eq(X,[1,2,3,4,5,6,7,8,9]),perm(X,P),nrev(P,X).
+
+            % goal(P):-eq(X,[1,2,3,4,5,6,7,8,9,10,11]),nrev(X,P),perm(X,P).
+
+
+            input([1,2,3,4,5,6,7,8,9,10,11]).
+
+            goal(Y):-input(X),nrev(X,Y),perm(X,Y),perm(Y,X).
+        `,
+        nl: `
+            eq X X .
+
+            sel X _0 Xs and
+              _0 holds list X Xs .
+
+            sel X _0 _1 and
+              _0 holds list Y Xs and
+              _1 holds list Y Ys 
+            if
+              sel X Xs Ys .
+
+            perm nil nil .
+
+            perm _0 Zs and
+              _0 holds list X Xs 
+            if
+              perm Xs Ys and
+              sel X Zs Ys .
+
+            app nil Xs Xs .
+
+            app _0 Ys _1 and
+              _0 holds list X Xs and
+              _1 holds list X Zs 
+            if
+              app Xs Ys Zs .
+
+            nrev nil nil .
+
+            nrev _0 Zs and
+              _0 holds list X Xs 
+            if
+              nrev Xs Ys and
+              app Ys _1 Zs and
+              _1 lists X .
+
+            input _0 and
+              _0 lists 1 2 3 4 5 6 7 8 9 10 11 .
+
+            goal Y 
+            if
+              input X and
+              nrev X Y and
+              perm X Y and
+              perm Y X .
+        `
+    },
+
+    lambdas: {
+        pl: `
+            % generates all lambda terms of size 9
+
+            genLambda(X,Vs,N,N):-memb(X,Vs).
+            genLambda(l(X,A),Vs,s(N1),N2):-genLambda(A,[X|Vs],N1,N2).
+            genLambda(a(A,B),Vs,s(N1),N3):-genLambda(A,Vs,N1,N2),genLambda(B,Vs,N2,N3).
+
+            memb(X,[X|_]).
+            memb(X,[_|Xs]):-memb(X,Xs).
+
+            genClosedLambdaTerm(L,T):-genLambda(T,[],L,zero).
+
+            nine(s(s(s(s(s(s(s(s(s(zero)))))))))).
+
+            goal(Lam):-nine(Size),genClosedLambdaTerm(Size,Lam).
+        `,
+        nl: `
+            genLambda X Vs N N 
+            if
+              memb X Vs .
+
+            genLambda _0 Vs _1 N2 and
+              _0 holds l X A and
+              _1 holds s N1 
+            if
+              genLambda A _2 N1 N2 and
+              _2 holds list X Vs .
+
+            genLambda _0 Vs _1 N3 and
+              _0 holds a A B and
+              _1 holds s N1 
+            if
+              genLambda A Vs N1 N2 and
+              genLambda B Vs N2 N3 .
+
+            memb X _0 and
+              _0 holds list X _1 .
+
+            memb X _0 and
+              _0 holds list _1 Xs 
+            if
+              memb X Xs .
+
+            genClosedLambdaTerm L T 
+            if
+              genLambda T nil L zero .
+
+            nine _0 and
+              _0 holds s _1 and
+              _1 holds s _2 and
+              _2 holds s _3 and
+              _3 holds s _4 and
+              _4 holds s _5 and
+              _5 holds s _6 and
+              _6 holds s _7 and
+              _7 holds s _8 and
+              _8 holds s zero .
+
+            goal Lam 
+            if
+              nine Size and
+              genClosedLambdaTerm Size Lam .
+        `
+    },
+
+    mperms: {
+        pl: `
+            metaint([]).
+            metaint([G|Gs]):-cls([G|Bs],Gs),metaint(Bs).
+
+            cls([sel(X,[X|Xs],Xs)|Tail],Tail).
+            cls([sel(X,[Y|Xs],[Y|Ys]),sel(X,Xs,Ys)|Tail],Tail).
+
+            cls([perm([],[])|Tail],Tail).
+            cls([perm([X|Xs],Zs),perm(Xs,Ys),sel(X,Zs,Ys)|Tail],Tail).  
+                
+            input([1,2,3,4,5,6,7,8,9,10,11],[11,10,9,8,7,6,5,4,3,2,1]).
+
+            goal(Y):-input(X,Y),metaint([perm(X,Y),perm(Y,X)]).
+        `,
+        nl: `
+            metaint nil .
+
+            metaint _0 and
+              _0 holds list G Gs 
+            if
+              cls _1 Gs and
+              _1 holds list G Bs and
+              metaint Bs .
+
+            cls _0 Tail and
+              _0 holds list _1 Tail and
+              _1 holds sel X _2 Xs and
+              _2 holds list X Xs .
+
+            cls _0 Tail and
+              _0 holds list _1 _2 and
+              _1 holds sel X _3 _4 and
+              _3 holds list Y Xs and
+              _4 holds list Y Ys and
+              _2 holds list _5 Tail and
+              _5 holds sel X Xs Ys .
+
+            cls _0 Tail and
+              _0 holds list _1 Tail and
+              _1 holds perm nil nil .
+
+            cls _0 Tail and
+              _0 holds list _1 _2 and
+              _1 holds perm _3 Zs and
+              _3 holds list X Xs and
+              _2 holds list _4 _5 and
+              _4 holds perm Xs Ys and
+              _5 holds list _6 Tail and
+              _6 holds sel X Zs Ys .
+
+            input _0 _1 and
+              _0 lists 1 2 3 4 5 6 7 8 9 10 11 and
+              _1 lists 11 10 9 8 7 6 5 4 3 2 1 .
+
+            goal Y 
+            if
+              input X Y and
+              metaint _0 and
+              _0 lists _1 _2 and
+              _1 holds perm X Y and
+              _2 holds perm Y X .
+        `
+    },
+
+    combine: {
+        pl: `
+            member(X,[X|_]).
+            member(X,[_|L]):-member(X,L).
+            /*
+            maplist(_,[]).
+            maplist(P,[L1|L1s]) :- call(P,L1), maplist(P,L1s).
+            */
+            maplist(_,[],[]).
+            maplist(P,[L1|L1s],[L2|L2s]) :- call(P,L1,L2), maplist(P,L1s,L2s).
+            /*
+            maplist(_,[],[],[]).
+            maplist(P,[L1|L1s],[L2|L2s],[L3|L3s]) :- call(P,L1,L2,L3), maplist(P,L1s,L2s,L3s).
+
+            maplist(_,[],[],[],[]).
+            maplist(P,[L1|L1s],[L2|L2s],[L3|L3s],[L4|L4s]) :- call(P,L1,L2,L3,L4), maplist(P,L1s,L2s,L3s,L4s).
+            */
+            combine(Ls,Rs) :- maplist(member,Rs,Ls).
+            goal(R) :- combine([[1,2],[a,b],[8,9],[x,y]],R).
+        `,
+        nl: `
+            member X _0 and
+              _0 holds list X _1 .
+
+            member X _0 and
+              _0 holds list _1 L 
+            if
+              member X L .
+
+            maplist _0 nil nil .
+
+            maplist P _0 _1 and
+              _0 holds list L1 L1s and
+              _1 holds list L2 L2s 
+            if
+              P L1 L2 and
+              maplist P L1s L2s .
+
+            combine Ls Rs 
+            if
+              maplist member Rs Ls .
+
+            goal R 
+            if
+              combine _0 R and
+              _0 lists _1 _2 _3 and
+              _1 lists 1 2 and
+              _2 lists a b and
+              _3 lists 8 9 .
+        `
+    }
+};
+/*
+    const prog = new Prog(scripts.queens.nl)
+    //prog.ppCode()
+    const t0 = Date.now()
+    prog.run(false)
+    trace('elapsed secs', (Date.now() - t0) / 1000)
+*/
+
+</script>
+</body>
