@@ -85,8 +85,8 @@ choice_script.onchange = function() {
         run.disabled = false
     }
     else {
-        script_pl.innerHTML = ``
-        script_nl.innerHTML = ``
+        script_pl.innerHTML = ''
+        script_nl.innerHTML = ''
         run.disabled = true
     }
 }
@@ -436,7 +436,7 @@ const scripts = {
 
     lambdas: {
         pl: `
-            % generates all lambda terms of size 9
+            % generates all lambda terms of size 4
 
             genLambda(X,Vs,N,N):-memb(X,Vs).
             genLambda(l(X,A),Vs,s(N1),N2):-genLambda(A,[X|Vs],N1,N2).
