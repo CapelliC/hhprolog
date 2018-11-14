@@ -15,6 +15,11 @@ Copyright (c) 2018 Carlo Capelli
     <style>
         .main {
             display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .row {
+            display: flex;
             flex-direction: row;
             justify-content: space-between;
         }
@@ -22,7 +27,7 @@ Copyright (c) 2018 Carlo Capelli
             display: flex;
             flex-direction: column;
         }
-        .script {
+        .boxed {
             box-shadow: 8px 8px 5px #444;
             background-image: linear-gradient(180deg, #fff, #ddd 40%, #ccc);
         }
@@ -36,43 +41,63 @@ Copyright (c) 2018 Carlo Capelli
     </style>
     
     <div id=main class="main">
-        <div class="controls spacing">
-            <select id=choice_script>
-                <option>?</option>
-                <option id=mini>mini</option>
-                <option id=memb>memb</option>
-                <option id=add>add</option>
-                <option id=queens>queens</option>
-                <option id=sud4x>sud4x</option>
-                <option id=perms>perms</option>
-                <option id=lambdas>lambdas</option>
-                <option id=mperms>mperms</option>
-                <option id=combine>combine</option>
-            </select>
-            <button id=run disabled=true>Run</button>
-            <label>print solutions
-                <input id=print_sol type=checkbox>
-            </label>
-            <label>print VM code
-                <input id=print_vm_code type=checkbox>
-            </label>
+        <div class="spacing row">
+            <div class="controls spacing">
+                <select id=choice_script>
+                    <option>?</option>
+                    <option id=mini>mini</option>
+                    <option id=memb>memb</option>
+                    <option id=add>add</option>
+                    <option id=queens>queens</option>
+                    <option id=sud4x>sud4x</option>
+                    <option id=perms>perms</option>
+                    <option id=lambdas>lambdas</option>
+                    <option id=mperms>mperms</option>
+                    <option id=combine>combine</option>
+                </select>
+                <button id=run disabled=true>Run</button>
+                <label>print solutions
+                    <input id=print_sol type=checkbox>
+                </label>
+                <label>print VM code
+                    <input id=print_vm_code type=checkbox>
+                </label>
+            </div>
+            <div class="boxed spacing">
+                <div>Solutions</div>
+                <pre id=run_output></pre>
+            </div>
         </div>
-        <div class="script spacing">
-            <pre id=run_output></pre>
-        </div>
-        <div class="script spacing">
-            <pre id=script_pl></pre>
-        </div>
-        <div class="script spacing">
-            <pre id=script_nl></pre>
+        <div class="spacing row source">
+            <div class="boxed spacing">
+                <div>Prolog source</div>
+                <pre id=script_pl></pre>
+            </div>
+            <div class="boxed spacing">
+                <div>VM code (Readable NL)</div>
+                <pre id=script_nl></pre>
+            </div>
+            <div class="boxed spacing">
+                <div>VM code (binary dump)</div>
+                <pre id=script_bin></pre>
+            </div>
         </div>
     </div>
 <script>
 
 const trace = console.log
 
+function settext(e, t) {
+    e.innerHTML = t || ''
+}
+function gettext(e) {
+    return e.innerHTML
+}
+function textln(e, l) {
+    e.innerHTML = e.innerHTML + `\n` + (l || '')
+}
+
 choice_script.onchange = function() {
-    run_output.innerHTML = ''
 
     const choice = choice_script.value
     
@@ -80,35 +105,49 @@ choice_script.onchange = function() {
         return t.split('\n').map(l => l.substring(12)).join('\n')
     }
     if (choice !== '?') {
-        script_pl.innerHTML = ltrim(scripts[choice].pl)
-        script_nl.innerHTML = ltrim(scripts[choice].nl)
+        settext(script_pl, ltrim(scripts[choice].pl))
+        settext(script_nl, ltrim(scripts[choice].nl))
         run.disabled = false
+        if (print_vm_code.checked)
+            runnable(script_bin).ppCode()
     }
     else {
-        script_pl.innerHTML = ''
-        script_nl.innerHTML = ''
+        settext(script_pl)
+        settext(script_nl)
         run.disabled = true
     }
 }
 
+function runnable(out_elem) {
+    return new Prog({
+        writeln: function(l) {
+            textln(out_elem || run_output, l)
+        },
+        nl_source: gettext(script_nl)
+    })
+}
+
 run.onclick = function() {
-    run_output.innerHTML = ''
+    settext(run_output)
     
     try {
+        /*
         const prog = new Prog({
             writeln: function(l) {
-                run_output.innerHTML = run_output.innerHTML + `\n` + l
+                textln(run_output, l)
             },
-            nl_source: script_nl.innerHTML,
+            nl_source: gettext(script_nl)
         })
-
+        */
+        
         if (print_vm_code.checked)
-            prog.ppCode()
+            runnable(script_bin).ppCode()
 
         run.disabled = true
         main.classList.add('running')
 
         setTimeout(function() {
+            const prog = runnable()
             const t0 = Date.now()
             prog.run(print_sol.checked)
             prog.options.writeln('elapsed secs:' + (Date.now() - t0) / 1000)
