@@ -38,6 +38,10 @@ Copyright (c) 2018 Carlo Capelli
         .running {
             cursor: wait;
         }
+        .hscroll {
+            overflow: auto;
+        }
+        
     </style>
     
     <div id=main class="main">
@@ -77,7 +81,7 @@ Copyright (c) 2018 Carlo Capelli
                 <div>VM code (Readable NL)</div>
                 <pre id=script_nl></pre>
             </div>
-            <div class="boxed spacing">
+            <div class="boxed spacing hscroll">
                 <div>VM code (binary dump)</div>
                 <pre id=script_bin></pre>
             </div>
@@ -96,28 +100,9 @@ function gettext(e) {
 function textln(e, l) {
     e.innerHTML = e.innerHTML + `\n` + (l || '')
 }
-
-choice_script.onchange = function() {
-
-    const choice = choice_script.value
-    
-    function ltrim(t) {
-        return t.split('\n').map(l => l.substring(12)).join('\n')
-    }
-    if (choice !== '?') {
-        settext(script_pl, ltrim(scripts[choice].pl))
-        settext(script_nl, ltrim(scripts[choice].nl))
-        run.disabled = false
-        if (print_vm_code.checked)
-            runnable(script_bin).ppCode()
-    }
-    else {
-        settext(script_pl)
-        settext(script_nl)
-        run.disabled = true
-    }
+function clear() {
+    [script_pl, script_nl, script_bin].forEach(settext)
 }
-
 function runnable(out_elem) {
     return new Prog({
         writeln: function(l) {
@@ -127,22 +112,32 @@ function runnable(out_elem) {
     })
 }
 
+choice_script.onchange = function() {
+
+    clear()
+
+    const choice = choice_script.value
+    
+    function ltrim(t) {
+        return t.split('\n').map(l => l.substring(12)).join('\n')
+    }
+    if (choice !== '?') {
+        settext(script_pl, ltrim(scripts[choice].pl))
+        settext(script_nl, ltrim(scripts[choice].nl))
+        if (print_vm_code.checked)
+            runnable(script_bin).ppCode()
+        run.disabled = false
+    }
+    else {
+        run.disabled = true
+    }
+}
+
 run.onclick = function() {
     settext(run_output)
     
     try {
-        /*
-        const prog = new Prog({
-            writeln: function(l) {
-                textln(run_output, l)
-            },
-            nl_source: gettext(script_nl)
-        })
-        */
         
-        if (print_vm_code.checked)
-            runnable(script_bin).ppCode()
-
         run.disabled = true
         main.classList.add('running')
 
