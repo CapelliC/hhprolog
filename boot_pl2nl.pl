@@ -1,138 +1,175 @@
 /*  File:    boot_pl2nl.pl
     Author:  Carlo,,,
     Created: Nov  7 2018
-    Purpose: bypass pl2nl.pl, directly parsing prolog fragments to
-    pseudo natural hhprolog loadable assembly
+    Purpose: bypass pl2nl.pl, directly parsing prolog clauses to
+             pseudo natural hhprolog loadable assembly
 */
 
 :- module(boot_pl2nl,
-          [   boot_pl2nl/1
-             ,boot_pl2nl/2
-             ,tterm//3
-              %pl2nl//1, rule//1, callable//1,transl/2,
-              %targs//3
+          [pl_source//1
+          ,transl/2
+          ,testz/0
+          ,make_test/2
+          ,boot_pl2nl/1
+          ,boot_pl2nl/2
           ]).
 
+:- use_module(library(debug)).
+:- use_module(library(plunit)).
 :- use_module(library(dcg/basics)).
 
-boot_pl2nl(F) :-
-    phrase_from_file(pl2nl(Pl), F),
-    maplist(writeln, Pl), !,
-    nl,
-    maplist(transl, Pl, Nl),
-    maplist([S]>>format('~s~n',[S]), Nl).
-
-boot_pl2nl(Pl, Nl) :-
-    phrase(pl2nl(Nl), Pl).
-
-% translating
-%
-transl(r(H,Gs), Nl) :- phrase((tterm(H,[],Vh), "if " , tbody(Gs,true,Vh), "."), Nl).
-transl(f(T), Nl) :- phrase((tterm(T,[],_), "."), Nl).
-
-tbody([G|Gs],First,Vh) --> and(First), tterm(G,Vh,V1), tbody(Gs,false,V1).
-tbody([],_,_) --> [].
-
-and(true) --> [].
-and(false) --> " and ".
-
-%tterm(s(F,As), V0s,Vs) --> atom(F), " ", targs(As,V0s,Vs).
-% ?- S=s(add,[n(0),v('X'),v('X')]), phrase(tterm(S,[],Vs),T), format('<~s>~n', [T]).
-% ?- S=s(add,[s(s(s,[v('X')])),v('Y'),s(s(s,[v('Z')]))]), phrase(tterm(S,[],Vs),T), format('<~s>~n', [T]).
-tterm(s(F,As), V0s,Vs) -->
-    atom(F), " ",
-    targs(As,V0s,Vs,[],Bs),
-    deb(s(F,As)->Bs),
-    (   {Bs\=[]}
-    ->  {reverse(Bs,Cs)},
-        xargs(Cs)
-    ;   []
-    ).
-tterm(n(N), Vs,Vs) --> number(N).
-tterm(a(A), Vs,Vs) --> atom(A).
-tterm(v(V), Vs,Vs) --> atom(V).
-
-tterm(l(nil), Vs,Vs) --> "nil".
-tterm(l(H/nil), V0s,Vs) --> "lists ", tlist(H, V0s,Vs).
-tterm(l(H/T), V0s,Vs) --> deb(l(H/T)), "list ", tlist(H,V0s,V1s), tterm(T,V1s,Vs).
-
+testz :-
+    transl(r(c(goal,[v('E')]),[c(memb,[v('E'),l([n(0),n(1),n(2),n(3)]/nil)])]),T),
+    writeln(T).
 /*
-targs([A|As], V0s,Vs) --> deb(targs(A)), tfterm(A,V0s,V1s), " ", targs(As,V1s,Vs).
-targs([], Vs,Vs) --> [].
+testz :-
+    zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
+    writeln(T-Vt).
+testz :-
+    zargs1([v('E'), l([v('E')]/v('_'))], [], As),
+    writeln(As).
 */
-targs([A|As], V0s,Vs, Bs,U) -->
-    deb(targs1(A)),
-    targ(A, V0s,V1s, Bs,U0), " ",
-    targs(As, V1s,Vs, U0,U),
-    deb(targs2(A,U)).
-targs([], Vs,Vs, S,S) --> [].
+/*
+    PlSource = `memb(E,[E|_]).`,
+    phrase(pl_source([Pl]),PlSource),
+    NlSource = `memb E _0 and _0 holds list E _1 .`,
+    phrase(nl_source(NlExpect),NlSource),
+    transl(Pl,Tr),
+    Tr==NlExpect.
+*/
+boot_pl2nl(F) :-
+    phrase_from_file(pl_source(Pl),F),
+    maplist(writeln,Pl), !,
+    nl,
+    maplist(transl,Pl,Nl),
+    maplist([S]>>format('~s.~n',[S]),Nl).
 
-targ(v(V), Vs,Vs, S,S) --> atom(V).
-targ(n(N), Vs,Vs, S,S) --> number(N).
-targ(s(Q), V0s,Vs, S,[V:s(F,As)|S]) -->
-    deb(+s(Q,Vs)),
-    {Q=..[F|As], Vs=[V|V0s]},
-    genvar(V0s,[V|V0s]), atom(V).
-targ(X, Vs,Vs, S,S) -->
-    deb(why(X)).
+boot_pl2nl(Pl,Nl) :-
+    phrase(pl_source(Nl),Pl).
 
-genvar(V0s,[V|V0s]) -->
-    {length(V0s,N), format(atom(V),'_~d',[N])}.
-
-xargs([V:E|Es]) --> xarg(V,E), xargs(Es).
-xargs([]) --> [].
-
-xarg(V,E) --> " and ", atom(V), " holds ", xarg(E).
-
-xarg(s(F,_As)) --> atom(F).
-xarg(n(N)) --> number(N).
-xarg(v(V)) --> atom(V).
-
-tfterm(v(V), Vs,Vs) --> atom(V).
-tfterm(n(N), Vs,Vs) --> number(N).
-tfterm(l(H/T), V0s,Vs) -->
-    addvar(V0s,V1s), "list ", tlist(H,V0s,V1s), tterm(T,V1s,Vs).
-
-addvar(V0s,[V|V0s]) -->
-    {length(V0s,N), format(atom(V),'_~d',[N])},
-    atom(V), " and ", atom(V), " holds ", deb(addvar(V0s, V)).
-
-
-tlist([], Vs,Vs) --> [].
-tlist([H|T], V0s,Vs) --> tterm(H,V0s,V1s), " ", tlist(T,V1s,Vs).
-
-% parsing
+%!  transl(+Clause,-Linearized) is det
 %
-pl2nl([P|Ps]) --> s, rule(P), deb(rule(P)), s, pl2nl(Ps).
-pl2nl([]) --> s.
-pl2nl(_) --> syntax_error('cannot parse').
+transl(f(Pl),Nl) :-
+    zterm(Pl,[],Nl,_Vt).
+transl(r(H,Bs),Nl) :-
+    zterm(H,[],Ht,Vh),
+    zargs3(Bs,Vh,Bt,_Vt),
+    append([Ht,[if],Bt],Nl).
+
+%!  zterm(+Term,+Vars,-Translated,-VarsUpdated) is det
+zterm(c(F,As),Vs,Translated,Us) :-
+    zargs1(As,Vs,A1s),
+    zargs2(As,Vs,A2s,Us),
+    conj([F|A1s],and,A2s,Translated).
+zterm(l(H/T),Vs,Translated,Us) :-
+    zargs1(H,Vs,V1),
+    zargs1([T],V1,V2),
+    append(H,[T],L),
+    zargs2(L,V2,Translated,Us).
+zterm(n(N),Vs,[N],Vs).
+zterm(v(V),Vs,[V],Vs).
+
+%!  zargs1(+Term,+Vars,-VarsAllocated) is det
+%
+zargs1([],_,[]).
+zargs1([c(_,_)|As],Vs,[B|Bs]) :-
+    genvar(Vs,Vu,B),
+    zargs1(As,Vu,Bs).
+zargs1([l(H/T)|As],Vs,[B|Bs]) :-
+    genvar(Vs,V1,B),
+    zlist(H,T,L),
+    zargs1(L,V1,V2),
+    zargs1(As,V2,Bs).
+zargs1([v('_')|As],Vs,[V|Bs]) :-
+    genvar(Vs,Vu,V),
+    zargs1(As,Vu,Bs).
+zargs1([v(V)|As],Vs,[V|Bs]) :-
+    zargs1(As,Vs,Bs).
+zargs1([n(_)|As],Vs,Bs) :-
+    zargs1(As,Vs,Bs).
+
+zlist(H,nil,H).
+zlist(H,T,L) :- append(H,[T],L).
+
+vlist([],Vs,[],Vs).
+vlist([H|T],V1,Lj,V3) :-
+    zterm(H,V1,Ht,V2),
+    vlist(T,V2,Lr,V3),
+    append(Ht,Lr,Lj).
+
+%!  zargs2(+Arg,+Vars,-Flat,-VarsUpd) is det
+%
+zargs2([],Vs,[],Vs).
+zargs2([c(F,Qs)|As],Vs,Ts,Vu) :-
+    genvar(Vs,Ut,V),
+    zterm(c(F,Qs),Ut,Bl,Us),
+    zargs2(As,Us,Cs,Vu),
+    conj([V,holds|Bl],and,Cs,Ts).
+zargs2([l(H/nil)|As],Vs,Ts,Vu) :-
+    genvar(Vs,V1,V),
+    vlist(H,V1,Lt,V2),
+    zargs2(As,V2,Cs,Vu),
+    conj([V,holds,lists|Lt],and,Cs,Ts).
+zargs2([_|As],Vs,Ts,Vu) :-
+    zargs2(As,Vs,Ts,Vu).
+
+zargs3([],Vs,[],Vs).
+zargs3([B|Bs],Vh,Ts,Vu) :-
+    zterm(B,Vh,Bt,Vn),
+    zargs3(Bs,Vn,Rs,Vu),
+    conj(Bt,and,Rs,Ts).
+
+%!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
+%
+genvar(V0s,[V|V0s]) :-
+    length(V0s,N),
+    format(atom(V),'_~d',[N]).
+genvar(V0s,[V|V0s],V) :-
+    genvar(V0s,[V|V0s]).
+
+%!  conj(+Left,+And,+Right,-Join) is det
+%
+conj(L,And,R,J) :-
+    (   R = []
+    ->  J = L
+    ;   R = [And|_]
+    ->  append([L,R],J)
+    ;   append([L,[And],R],J)
+    ).
+
+%!  pl2nl(?Clauses)// is det
+%
+%   parsing a subset of pure Prolog
+%
+pl_source([P|Ps]) --> s, rule(P), s, pl_source(Ps).
+pl_source([]) --> s.
+pl_source(_) --> syntax_error('cannot parse').
 
 s --> blank, s.
 s --> comment, s.
 s --> [].
 
-comment --> "/*", deb(b1), string(_), "*/", deb(b2).
-comment --> "%", deb(c1), string_without("\n", _), deb(c2).
+comment --> "/*", string(_), "*/".
+comment --> "%", string_without("\n", _).
 
 rule(r(H,Bs)) --> callable(H), s, ":-", s, body(Bs), s, ".".
 rule(f(F)) --> callable(F), s, ".".
 
-callable(s(A,Ts)) --> funct(A), "(", s, terms(Ts), s, ")".
-callable(s(A)) --> name(A).
+callable(c(A,Ts)) --> funct(A), "(", s, terms(Ts), s, ")".
+callable(c(A,[])) --> name(A).
 
-body([G|Gs]) --> callable(G), deb(callable(G)), body_(Gs).
+body([G|Gs]) --> callable(G), body_(Gs).
 body_(Gs) --> s, ",", s, body(Gs).
 body_([]) --> [].
 
-terms([T|Ts]) --> term(T), /*deb(term(T)),*/ terms_(Ts).
+terms([T|Ts]) --> term(T), terms_(Ts).
 terms_(Ts) --> s, ",", s, terms(Ts).
 terms_([]) --> [].
 
 term(n(N)) --> number(N).
-%term(a(A)) --> name(A).
 term(l(L)) --> list(L).
 term(v(V)) --> var(V).
-term(s(S)) --> callable(S).
+term(C) --> callable(C).
 
 list(Ts/nil) --> s, "[", s, terms(Ts), s, "]".
 list(Ts/T) --> s, "[", s, terms(Ts), s, "|", s, term(T), s, "]".
@@ -155,4 +192,95 @@ typescs(T, [C|Cs]) --> typesc(T,C), typescs(T,Cs).
 typescs(_, []) --> [].
 
 % debug
-deb(X) --> {writeln(+X)}.
+deb(X) --> {debugging(boot_pl2nl) -> writeln(+X) ; true}.
+
+make_test(T,S) :-
+    phrase(pl_source([Pl]),S),
+    format('test(~s) :-~n~4|source_clause(~n~8|`~s`,~n~8|~q~n~4|).', [T,S,Pl]).
+
+source_clause(Source,Clause) :-
+    phrase(pl_source(Nl),Source),!,
+    Nl=[Clause].
+source_nl_clause(Source,NlClause) :-
+    source_clause(Source,Parsed),
+    transl(Parsed,NlClause).
+
+source_pl_source_nl(Source,NlClauseSource) :-
+    phrase(nl_source(NlClause),NlClauseSource),
+    source_nl_clause(Source,NlClause).
+
+%!  nl_source(-Parsed)// is det
+%
+nl_source([]) --> s, ".", s.
+nl_source([T|Ts]) --> nl_token(T), s, nl_source(Ts).
+nl_token(T) --> name(T).
+nl_token(T) --> var(T).
+nl_token(T) --> number(T).
+
+:- begin_tests(boot_pl2nl).
+
+test(mini) :-
+    source_clause(
+        `a(1).`,
+        f(c(a,[n(1)]))
+    ).
+test(mini) :-
+    source_clause(
+        `goal(Y):-a(Y).`,
+        r(c(goal, [v('Y')]), [c(a, [v('Y')])])
+    ).
+
+test(memb) :-
+    source_clause(
+        `memb(E,[E|_]).`,
+        f(c(memb, [v('E'), l([v('E')]/v('_'))]))
+    ).
+
+test(memb) :-
+    source_pl_source_nl(
+        `memb(E,[E|_]).`,
+        `memb E _0 and
+          _0 holds list E _1 .
+        `
+    ).
+test(memb) :-
+    source_clause(
+        `memb(E,[_|T]) :- memb(E,T).`,
+        r(c(memb, [v('E'), l([v('_')]/v('T'))]), [c(memb, [v('E'), v('T')])])
+    ).
+test(memb) :-
+    source_clause(
+        `goal(E):-memb(E,[0,1,2,3]).`,
+        r(c(goal,[v(E)]),[c(memb,[v(E),l([n(0),n(1),n(2),n(3)]/nil)])])
+    ).
+/*test(memb) :-
+    source_pl_source_nl(
+        `goal(E):-memb(E,[0,1,2,3]).`,
+        `goal E
+         if
+          memb E _0 and
+          _0 lists 0 1 2 3 4 5 6 7 8 9 10 11 .
+        `
+    ).
+*/
+test(add) :-
+    source_clause(
+        `add(0,X,X).`,
+        f(c(add,[n(0),v('X'),v('X')]))
+    ).
+test(add) :-
+    source_pl_source_nl(
+        `add(s(X),Y,s(Z)):-add(X,Y,Z).`,
+        `add _0 Y _1 and
+         _0 holds s X and
+         _1 holds s Z
+        if
+         add X Y Z .`
+    ).
+test(add) :-
+    source_clause(
+        `goal(R):-add(s(s(0)),s(s(0)),R).`,
+        r(c(goal,[v('R')]),[c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])])
+    ).
+
+:- end_tests(boot_pl2nl).

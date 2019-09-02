@@ -3,7 +3,7 @@
 # Version: 1.0.0
 # License: MIT
 # 
-# Copyright (c) 2018 Carlo Capelli
+# Copyright (c) 2018,2019 Carlo Capelli
 
 TEMPLATE = app
 
