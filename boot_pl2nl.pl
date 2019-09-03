@@ -18,6 +18,10 @@
 :- use_module(library(plunit)).
 :- use_module(library(dcg/basics)).
 
+testz :-
+    transl(r(c(goal,[v('R')]),[c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
+    writeln(T).
+
 /*
 testz :-
     transl(r(c(goal,[v('E')]),[c(memb,[v('E'),l([n(0),n(1),n(2),n(3)]/nil)])]),T),
@@ -34,9 +38,16 @@ testz :-
         `
     ).
 */
+/*
 testz :-
     zterm(c(memb, [v('E'), l([v('E')]/v('_'))]),[],T,Vs),
     writeln(T-Vs).
+*/
+/*
+testz :-
+    transl(f(c(a,[n(1)])),T),
+    writeln(T).
+*/
 /*
 testz :-
     zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
@@ -104,7 +115,7 @@ zargs1([v('_')|As],Vs,[V|Bs]) :-
     zargs1(As,Vu,Bs).
 zargs1([v(V)|As],Vs,[V|Bs]) :-
     zargs1(As,Vs,Bs).
-zargs1([n(_)|As],Vs,Bs) :-
+zargs1([n(N)|As],Vs,[N|Bs]) :-
     zargs1(As,Vs,Bs).
 
 zlist(H,nil,H).
@@ -244,18 +255,31 @@ nl_token(T) --> number(T).
 
 :- begin_tests(boot_pl2nl).
 
-test(mini) :-
+test(mini_fact) :-
     source_clause(
         `a(1).`,
         f(c(a,[n(1)]))
     ).
-test(mini) :-
+test(mini_goal) :-
     source_clause(
         `goal(Y):-a(Y).`,
         r(c(goal, [v('Y')]), [c(a, [v('Y')])])
     ).
 
-test(memb_base) :-
+test(mini_fact_pl_nl) :-
+    source_pl_source_nl(
+        `a(1).`,
+        `a 1 .`
+    ).
+test(mini_goal_pl_nl) :-
+    source_pl_source_nl(
+        `goal(Y):-a(Y).`,
+        `goal Y
+         if
+          a Y .`
+    ).
+
+test(memb_base_pl_nl) :-
     source_pl_source_nl(
         `memb(E,[E|_]).`,
         `memb E _0 and
@@ -267,7 +291,15 @@ test(memb_loop) :-
         `memb(E,[_|T]) :- memb(E,T).`,
         r(c(memb, [v('E'), l([v('_')]/v('T'))]), [c(memb, [v('E'), v('T')])])
     ).
-test(memb_goal) :-
+test(memb_loop_pl_nl) :-
+    source_pl_source_nl(
+        `memb(E,[_|T]) :- memb(E,T).`,
+        `memb E _0 and
+           _0 holds list _1 T
+         if
+           memb E T .`
+    ).
+test(memb_goal_pl_nl) :-
     source_pl_source_nl(
         `goal(E):-memb(E,[0,1,2,3]).`,
         `goal E
@@ -277,12 +309,17 @@ test(memb_goal) :-
         `
     ).
 
-test(add) :-
+test(add_base) :-
     source_clause(
         `add(0,X,X).`,
         f(c(add,[n(0),v('X'),v('X')]))
     ).
-test(add) :-
+test(add_base_pl_nl) :-
+    source_pl_source_nl(
+        `add(0,X,X).`,
+        `add 0 X X .`
+    ).
+test(add_loop_pl_nl) :-
     source_pl_source_nl(
         `add(s(X),Y,s(Z)):-add(X,Y,Z).`,
         `add _0 Y _1 and
@@ -291,10 +328,21 @@ test(add) :-
         if
          add X Y Z .`
     ).
-test(add) :-
+test(add_goal) :-
     source_clause(
         `goal(R):-add(s(s(0)),s(s(0)),R).`,
         r(c(goal,[v('R')]),[c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])])
+    ).
+test(add_goal_pl_nl) :-
+    source_clause(
+        `goal(R):-add(s(s(0)),s(s(0)),R).`,
+        `goal R
+         if
+          add _0 _1 R and
+          _0 holds s _2 and
+          _2 holds s 0 and
+          _1 holds s _3 and
+          _3 holds s 0 .`
     ).
 
 :- end_tests(boot_pl2nl).
