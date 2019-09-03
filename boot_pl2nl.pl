@@ -18,18 +18,37 @@
 :- use_module(library(plunit)).
 :- use_module(library(dcg/basics)).
 
+/*
 testz :-
     transl(r(c(goal,[v('E')]),[c(memb,[v('E'),l([n(0),n(1),n(2),n(3)]/nil)])]),T),
     writeln(T).
+*/
+/*
+testz :-
+    source_pl_source_nl(
+        `goal(E):-memb(E,[0,1,2,3]).`,
+        `goal E
+         if
+          memb E _0 and
+          _0 lists 0 1 2 3 .
+        `
+    ).
+*/
+testz :-
+    zterm(c(memb, [v('E'), l([v('E')]/v('_'))]),[],T,Vs),
+    writeln(T-Vs).
 /*
 testz :-
     zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
     writeln(T-Vt).
+*/
+/*
 testz :-
     zargs1([v('E'), l([v('E')]/v('_'))], [], As),
     writeln(As).
 */
 /*
+testz :-
     PlSource = `memb(E,[E|_]).`,
     phrase(pl_source([Pl]),PlSource),
     NlSource = `memb E _0 and _0 holds list E _1 .`,
@@ -109,7 +128,13 @@ zargs2([l(H/nil)|As],Vs,Ts,Vu) :-
     genvar(Vs,V1,V),
     vlist(H,V1,Lt,V2),
     zargs2(As,V2,Cs,Vu),
-    conj([V,holds,lists|Lt],and,Cs,Ts).
+    conj([V,lists|Lt],and,Cs,Ts).
+zargs2([l(H/T)|As],Vs,Ts,Vu) :-
+    genvar(Vs,Ut,V),
+    zlist(H,T,L),
+    zargs1(L,Ut,Us),
+    zargs2(As,Us,Cs,Vu),
+    conj([V,holds,list|Us],and,Cs,Ts).
 zargs2([_|As],Vs,Ts,Vu) :-
     zargs2(As,Vs,Ts,Vu).
 
@@ -230,39 +255,28 @@ test(mini) :-
         r(c(goal, [v('Y')]), [c(a, [v('Y')])])
     ).
 
-test(memb) :-
-    source_clause(
-        `memb(E,[E|_]).`,
-        f(c(memb, [v('E'), l([v('E')]/v('_'))]))
-    ).
-
-test(memb) :-
+test(memb_base) :-
     source_pl_source_nl(
         `memb(E,[E|_]).`,
         `memb E _0 and
           _0 holds list E _1 .
         `
     ).
-test(memb) :-
+test(memb_loop) :-
     source_clause(
         `memb(E,[_|T]) :- memb(E,T).`,
         r(c(memb, [v('E'), l([v('_')]/v('T'))]), [c(memb, [v('E'), v('T')])])
     ).
-test(memb) :-
-    source_clause(
-        `goal(E):-memb(E,[0,1,2,3]).`,
-        r(c(goal,[v(E)]),[c(memb,[v(E),l([n(0),n(1),n(2),n(3)]/nil)])])
-    ).
-/*test(memb) :-
+test(memb_goal) :-
     source_pl_source_nl(
         `goal(E):-memb(E,[0,1,2,3]).`,
         `goal E
          if
           memb E _0 and
-          _0 lists 0 1 2 3 4 5 6 7 8 9 10 11 .
+          _0 lists 0 1 2 3 .
         `
     ).
-*/
+
 test(add) :-
     source_clause(
         `add(0,X,X).`,
