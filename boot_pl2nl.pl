@@ -18,10 +18,13 @@
 :- use_module(library(plunit)).
 :- use_module(library(dcg/basics)).
 
+/*
 testz :-
     transl(f(c(memb, [v('E'), l([v('E')]/v('_'))])), T),
     writeln(T).
+*/
 /*
+testz :-
     source_pl_source_nl(
         `memb(E,[E|_]).`,
         `memb E _0 and
@@ -56,11 +59,11 @@ testz :-
     zterm(c(memb, [v('E'), l([v('E')]/v('_'))]),[],T,Vs),
     writeln(T-Vs).
 */
-/*
+
 testz :-
     transl(f(c(a,[n(1)])),T),
     writeln(T).
-*/
+
 /*
 testz :-
     zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
@@ -92,12 +95,39 @@ boot_pl2nl(Pl,Nl) :-
 
 %!  transl(+Clause,-Linearized) is det
 %
+%   top level rewrite interface, takes either a fact or a rule
+%
 transl(f(Pl),Nl) :-
-    zterm(Pl,[],Nl,_Vt).
+    %zterm(Pl,[],Nl,_Vt).
+    tterm(Pl,[],Nl,_Vt).
 transl(r(H,Bs),Nl) :-
     zterm(H,[],Ht,Vh),
     zargs3(Bs,Vh,Bt,_Vt),
     append([Ht,[if],Bt],Nl).
+
+tterm(c(F,As),Vs,Translated,Us) :-
+    targs(As,Vs,A1s,A2s,Us),
+    conj([F|A1s],and,A2s,Translated).
+/*
+tterm(l(H/T),Vs,Translated,Us) :-
+    zargs1(H,Vs,_,V1),
+    zargs1([T],V1,_,V2),
+    append(H,[T],L),
+    zargs2(L,V2,Translated,Us).
+*/
+tterm(n(N),Vs,[N],Vs).
+tterm(v(V),Vs,[V],Vs).
+
+targs([],Vs,[],[],Vs).
+targs([A|As],Vs,[A1t|A1ts],[A2t|A2ts],Zs) :-
+    hterm(A,Vs,A1t,A2t,Us),
+    targs(As,Us,A1ts,A2ts,Zs).
+
+hterm(T,Vs,G,[G,holds|Bl],Zs) :-
+    genvar(Vs,Us,G),
+    tterm(T,Us,Bl,Zs).
+hterm(n(N),Vs,n(N),[],Vs).
+hterm(v(V),Vs,v(V),[],Vs).
 
 %!  zterm(+Term,+Vars,-Translated,-VarsUpdated) is det
 zterm(c(F,As),Vs,Translated,Us) :-
