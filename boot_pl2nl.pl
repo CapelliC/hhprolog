@@ -127,19 +127,11 @@ transl(r(H,Bs),Nl) :-
  tbody(Bs,Vh,Bt,_Vt),
  append([Ht,[if],Bt],Nl).
 
-tterm(c(F,As),Vs,Translated,Us) :-
- targs(As,Vs,A1s,A2s,Us),
- flatten(A2s,Afs),
- conj([F|A1s],and,Afs,Translated).
-/*TBD
- tterm(l(H/T),Vs,Translated,Us) :-
- zargs1(H,Vs,_,V1),
- zargs1([T],V1,_,V2),
- append(H,[T],L),
- zargs2(L,V2,Translated,Us).
-*/
 tterm(n(N),Vs,[N],Vs).
 tterm(v(V),Vs,[V],Vs).
+tterm(c(F,As),Vs,Translated,Us) :-
+ targs(As,Vs,A1s,A2s,Us),
+ conj([F|A1s],and,A2s,Translated).
 
 targs([],Vs,[],[],Vs).
 targs([A|As],Vs,[A1t|A1ts],A2j,Zs) :-
@@ -147,17 +139,17 @@ targs([A|As],Vs,[A1t|A1ts],A2j,Zs) :-
  targs(As,Us,A1ts,A2ts,Zs),
  conj(A2t,and,A2ts,A2j).
 
-tbody([],Vs,[],Vs).
-tbody([A|As],Vs,Bts,Zs) :-
- tterm(A,Vs,At,Us),
- tbody(As,Us,Ats,Zs),
- conj(At,and,Ats,Bts).
-
 hterm(n(N),Vs,N,[],Vs).
 hterm(v(V),Vs,V,[],Vs).
 hterm(T,Vs,G,[G,holds|Bl],Zs) :-
  genvar(Vs,Us,G),
  tterm(T,Us,Bl,Zs).
+
+tbody([],Vs,[],Vs).
+tbody([A|As],Vs,Bts,Zs) :-
+ tterm(A,Vs,At,Us),
+ tbody(As,Us,Ats,Zs),
+ conj(At,and,Ats,Bts).
 
 %!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
 %
@@ -169,13 +161,9 @@ genvar(V0s,[V|V0s],V) :-
 
 %!  conj(+Left,+And,+Right,-Join) is det
 %
+conj(L,_,[],L).
 conj(L,And,R,J) :-
- (   R = []
- ->  J = L
- ;   R = [And|_]
- ->  append([L,R],J)
- ;   append([L,[And],R],J)
- ).
+    append([L,[And],R],J).
 
 %!  pl_source(?Clauses)// is det
 %
