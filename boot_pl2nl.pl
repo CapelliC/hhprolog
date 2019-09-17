@@ -23,12 +23,19 @@ testz :-
     transl(f(c(add,[n(0),v('X'),v('X')])),T),
     writeln(T).
 */
+/*
 testz :-
     transl(r(
                c(add,[c(s,[v('X')]),v('Y'),c(s,[v('Z')])]),
                [c(add,[v('X'),v('Y'),v('Z')])]
            ),T),
     writeln(T).
+*/
+testz :-
+    transl(r(c(goal,[v('R')]),
+             [c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
+    writeln(T).
+
 /*
 testz :-
     transl(f(c(memb, [v('E'), l([v('E')]/v('_'))])), T),
