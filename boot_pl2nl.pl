@@ -59,87 +59,109 @@ testz :-
     zterm(c(memb, [v('E'), l([v('E')]/v('_'))]),[],T,Vs),
     writeln(T-Vs).
 */
-
+/*
 testz :-
     transl(f(c(a,[n(1)])),T),
     writeln(T).
+*/
+testz :-
+    transl(r(c(goal, [v('Y')]), [c(a, [v('Y')])]),T),
+    writeln(T).
 
 /*
-testz :-
-    zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
-    writeln(T-Vt).
+ testz :-
+ zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
+ writeln(T-Vt).
 */
 /*
-testz :-
-    zargs1([v('E'), l([v('E')]/v('_'))], [], As),
-    writeln(As).
+ testz :-
+ zargs1([v('E'), l([v('E')]/v('_'))], [], As),
+ writeln(As).
 */
 /*
-testz :-
-    PlSource = `memb(E,[E|_]).`,
-    phrase(pl_source([Pl]),PlSource),
-    NlSource = `memb E _0 and _0 holds list E _1 .`,
-    phrase(nl_source(NlExpect),NlSource),
-    transl(Pl,Tr),
-    Tr==NlExpect.
+ testz :-
+ PlSource = `memb(E,[E|_]).`,
+ phrase(pl_source([Pl]),PlSource),
+ NlSource = `memb E _0 and _0 holds list E _1 .`,
+ phrase(nl_source(NlExpect),NlSource),
+ transl(Pl,Tr),
+ Tr==NlExpect.
 */
 boot_pl2nl(F) :-
-    phrase_from_file(pl_source(Pl),F),
-    maplist(writeln,Pl), !,
-    nl,
-    maplist(transl,Pl,Nl),
-    maplist([S]>>format('~s.~n',[S]),Nl).
+ phrase_from_file(pl_source(Pl),F),
+ maplist(writeln,Pl), !,
+ nl,
+ maplist(transl,Pl,Nl),
+ maplist([S]>>format('~s.~n',[S]),Nl).
 
 boot_pl2nl(Pl,Nl) :-
-    phrase(pl_source(Nl),Pl).
+ phrase(pl_source(Nl),Pl).
 
 %!  transl(+Clause,-Linearized) is det
 %
 %   top level rewrite interface, takes either a fact or a rule
 %
 transl(f(Pl),Nl) :-
-    %zterm(Pl,[],Nl,_Vt).
-    tterm(Pl,[],Nl,_Vt).
+ tterm(Pl,[],Nl,_Vt).
 transl(r(H,Bs),Nl) :-
-    zterm(H,[],Ht,Vh),
-    zargs3(Bs,Vh,Bt,_Vt),
-    append([Ht,[if],Bt],Nl).
+ tterm(H,[],Ht,Vh),
+ tbody(Bs,Vh,Bt,_Vt),
+ append([Ht,[if],Bt],Nl).
 
 tterm(c(F,As),Vs,Translated,Us) :-
-    targs(As,Vs,A1s,A2s,Us),
-    conj([F|A1s],and,A2s,Translated).
-/*
-tterm(l(H/T),Vs,Translated,Us) :-
-    zargs1(H,Vs,_,V1),
-    zargs1([T],V1,_,V2),
-    append(H,[T],L),
-    zargs2(L,V2,Translated,Us).
+ targs(As,Vs,A1s,A2s,Us),
+ flatten(A2s,Afs),
+ conj([F|A1s],and,Afs,Translated).
+/*TBD
+ tterm(l(H/T),Vs,Translated,Us) :-
+ zargs1(H,Vs,_,V1),
+ zargs1([T],V1,_,V2),
+ append(H,[T],L),
+ zargs2(L,V2,Translated,Us).
 */
 tterm(n(N),Vs,[N],Vs).
 tterm(v(V),Vs,[V],Vs).
 
 targs([],Vs,[],[],Vs).
 targs([A|As],Vs,[A1t|A1ts],[A2t|A2ts],Zs) :-
-    hterm(A,Vs,A1t,A2t,Us),
-    targs(As,Us,A1ts,A2ts,Zs).
+ hterm(A,Vs,A1t,A2t,Us),
+ targs(As,Us,A1ts,A2ts,Zs).
 
+tbody([],Vs,[],Vs).
+tbody([A|As],Vs,Bts,Zs) :-
+ tterm(A,Vs,At,Us),
+ tbody(As,Us,Ats,Zs),
+ conj(At,and,Ats,Bts).
+
+hterm(n(N),Vs,N,[],Vs).
+hterm(v(V),Vs,V,[],Vs).
 hterm(T,Vs,G,[G,holds|Bl],Zs) :-
-    genvar(Vs,Us,G),
-    tterm(T,Us,Bl,Zs).
-hterm(n(N),Vs,n(N),[],Vs).
-hterm(v(V),Vs,v(V),[],Vs).
+ genvar(Vs,Us,G),
+ tterm(T,Us,Bl,Zs).
 
-%!  zterm(+Term,+Vars,-Translated,-VarsUpdated) is det
+/*
+%!  transl(+Clause,-Linearized) is det
+%
+%   top level rewrite interface, takes either a fact or a rule
+%
+transl(f(Pl),Nl) :-
+ zterm(Pl,[],Nl,_Vt).
+transl(r(H,Bs),Nl) :-
+ zterm(H,[],Ht,Vh),
+ zargs3(Bs,Vh,Bt,_Vt),
+ append([Ht,[if],Bt],Nl).
+*/
+ %!  zterm(+Term,+Vars,-Translated,-VarsUpdated) is det
 zterm(c(F,As),Vs,Translated,Us) :-
-    zargs1(As,Vs,A1s,Gs),
-    zargs2(As,Vs,A2s,Us),
-    assertion(Gs==Us),
-    conj([F|A1s],and,A2s,Translated).
+ zargs1(As,Vs,A1s,Gs),
+ zargs2(As,Vs,A2s,Us),
+ assertion(Gs==Us),
+ conj([F|A1s],and,A2s,Translated).
 zterm(l(H/T),Vs,Translated,Us) :-
-    zargs1(H,Vs,_,V1),
-    zargs1([T],V1,_,V2),
-    append(H,[T],L),
-    zargs2(L,V2,Translated,Us).
+ zargs1(H,Vs,_,V1),
+ zargs1([T],V1,_,V2),
+ append(H,[T],L),
+ zargs2(L,V2,Translated,Us).
 zterm(n(N),Vs,[N],Vs).
 zterm(v(V),Vs,[V],Vs).
 
@@ -147,81 +169,81 @@ zterm(v(V),Vs,[V],Vs).
 %
 zargs1([],Vs,[],Vs).
 zargs1([c(_,Qs)|As],Vs,[B|Bs],Vt) :-
-    genvar(Vs,Vu,B),
-    zargs1(Qs,Vu,_,Vr),
-    zargs1(As,Vr,Bs,Vt).
+ genvar(Vs,Vu,B),
+ zargs1(Qs,Vu,_,Vr),
+ zargs1(As,Vr,Bs,Vt).
 zargs1([l(H/T)|As],Vs,[B|Bs],Vt) :-
-    genvar(Vs,V1,B),
-    zlist(H,T,L),
-    zargs1(L,V1,_,V2),
-    zargs1(As,V2,Bs,Vt).
+ genvar(Vs,V1,B),
+ zlist(H,T,L),
+ zargs1(L,V1,_,V2),
+ zargs1(As,V2,Bs,Vt).
 zargs1([v('_')|As],Vs,[V|Bs],Vt) :-
-    genvar(Vs,Vu,V),
-    zargs1(As,Vu,Bs,Vt).
+ genvar(Vs,Vu,V),
+ zargs1(As,Vu,Bs,Vt).
 zargs1([v(V)|As],Vs,[V|Bs],Vt) :-
-    zargs1(As,Vs,Bs,Vt).
+ zargs1(As,Vs,Bs,Vt).
 zargs1([n(N)|As],Vs,[N|Bs],Vt) :-
-    zargs1(As,Vs,Bs,Vt).
+ zargs1(As,Vs,Bs,Vt).
 
-%!  zargs2(+Arg,+Vars,-Flat,-VarsUpd) is det
-%
+ %!  zargs2(+Arg,+Vars,-Flat,-VarsUpd) is det
+ %
 zargs2([],Vs,[],Vs).
 zargs2([c(F,Qs)|As],Vs,Ts,Vu) :-
-    genvar(Vs,Ut,V),
-    zterm(c(F,Qs),Ut,Bl,Us),
-    zargs2(As,Us,Cs,Vu),
-    conj([V,holds|Bl],and,Cs,Ts).
+ genvar(Vs,Ut,V),
+ zterm(c(F,Qs),Ut,Bl,Us),
+ zargs2(As,Us,Cs,Vu),
+ conj([V,holds|Bl],and,Cs,Ts).
 zargs2([l(H/nil)|As],Vs,Ts,Vu) :-
-    genvar(Vs,V1,V),
-    vlist(H,V1,Lt,V2),
-    zargs2(As,V2,Cs,Vu),
-    conj([V,lists|Lt],and,Cs,Ts).
+ genvar(Vs,V1,V),
+ vlist(H,V1,Lt,V2),
+ zargs2(As,V2,Cs,Vu),
+ conj([V,lists|Lt],and,Cs,Ts).
 zargs2([l(H/T)|As],Vs,Ts,Vu) :-
-    genvar(Vs,Ut,V),
-    zlist(H,T,L),
-    zargs2(L,Ut,W,Us),
-    zargs2(As,Us,Cs,Vu),
-    conj([V,holds,list|W],and,Cs,Ts).
+ genvar(Vs,Ut,V),
+ zlist(H,T,L),
+ zargs2(L,Ut,W,Us),
+ zargs2(As,Us,Cs,Vu),
+ conj([V,holds,list|W],and,Cs,Ts).
 zargs2([_|As],Vs,Ts,Vu) :-
-    zargs2(As,Vs,Ts,Vu).
+ zargs2(As,Vs,Ts,Vu).
 
 zargs3([],Vs,[],Vs).
 zargs3([B|Bs],Vh,Ts,Vu) :-
-    zterm(B,Vh,Bt,Vn),
-    zargs3(Bs,Vn,Rs,Vu),
-    conj(Bt,and,Rs,Ts).
+ zterm(B,Vh,Bt,Vn),
+ zargs3(Bs,Vn,Rs,Vu),
+ conj(Bt,and,Rs,Ts).
 
 zlist(H,nil,H).
 zlist(H,T,L) :- append(H,[T],L).
 
 vlist([],Vs,[],Vs).
 vlist([H|T],V1,Lj,V3) :-
-    zterm(H,V1,Ht,V2),
-    vlist(T,V2,Lr,V3),
-    append(Ht,Lr,Lj).
+ zterm(H,V1,Ht,V2),
+ vlist(T,V2,Lr,V3),
+ append(Ht,Lr,Lj).
 
-%!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
-%
+ %!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
+ %
 genvar(V0s,[V|V0s]) :-
-    length(V0s,N),
-    format(atom(V),'_~d',[N]).
+ length(V0s,N),
+ format(atom(V),'_~d',[N]).
 genvar(V0s,[V|V0s],V) :-
-    genvar(V0s,[V|V0s]).
+ genvar(V0s,[V|V0s]).
 
-%!  conj(+Left,+And,+Right,-Join) is det
-%
+ %!  conj(+Left,+And,+Right,-Join) is det
+ %
 conj(L,And,R,J) :-
-    (   R = []
-    ->  J = L
-    ;   R = [And|_]
-    ->  append([L,R],J)
-    ;   append([L,[And],R],J)
-    ).
+ (   R = []
+ ->  J = L
+ ;   R = [And|_]
+ ->  append([L,R],J)
+ ;   append([L,[And],R],J)
+ ).
 
-%!  pl2nl(?Clauses)// is det
-%
-%   parsing a subset of pure Prolog
-%
+ %!  pl2nl(?Clauses)// is det
+ %
+ %   parsing a subset of pure Prolog
+ %
 pl_source([P|Ps]) --> s, rule(P), s, pl_source(Ps).
 pl_source([]) --> s.
 pl_source(_) --> syntax_error('cannot parse').
@@ -330,7 +352,7 @@ test(mini_goal_pl_nl) :-
          if
           a Y .`
     ).
-
+/*
 test(memb_base_pl_nl) :-
     source_pl_source_nl(
         `memb(E,[E|_]).`,
@@ -338,6 +360,7 @@ test(memb_base_pl_nl) :-
           _0 holds list E _1 .
         `
     ).
+*/
 /*
 test(memb_loop) :-
     source_clause(
