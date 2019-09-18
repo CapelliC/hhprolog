@@ -31,6 +31,11 @@ testz :-
            ),T),
     writeln(T).
 */
+/*
+testz :-
+    tterm(c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')]),[],T,U),
+    writeln(T/U).
+*/
 testz :-
     transl(r(c(goal,[v('R')]),
              [c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
@@ -129,6 +134,42 @@ transl(r(H,Bs),Nl) :-
 
 tterm(n(N),Vs,[N],Vs).
 tterm(v(V),Vs,[V],Vs).
+tterm(c(F,As),Vs,Translated,Zs) :-
+ targs1(As,Vs,Vt,Us),
+ targs2(As,Vt,Us,A1s,A2s,Zs),
+ conj([F|A1s],and,A2s,Translated).
+
+targs1([],Vs,[],Vs).
+targs1([c(_,_)|As],Vs,[G|Gs],Zs) :-
+ genvar(Vs,Us,G),
+ targs1(As,Us,Gs,Zs).
+targs1([_|As],Vs,Gs,Zs) :-
+ targs1(As,Vs,Gs,Zs).
+
+targs2([],_,Vs,[],[],Vs).
+targs2([A|As],Vas,Vs,[A1t|A1ts],A2j,Zs) :-
+ hterm(A,Vas,Uas,Vs,A1t,A2t,Us),
+ targs2(As,Uas,Us,A1ts,A2ts,Zs),
+ conj(A2t,and,A2ts,A2j).
+
+hterm(n(N),_,_,Vs,N,[],Vs).
+hterm(v(V),_,_,Vs,V,[],Vs).
+hterm(T,[U|Us],Us,Vs,U,[U,holds|Bl],Zs) :-
+ tterm(T,Vs,Bl,Zs).
+
+tbody([],Vs,[],Vs).
+tbody([A|As],Vs,Bts,Zs) :-
+ tterm(A,Vs,At,Us),
+ tbody(As,Us,Ats,Zs),
+ conj(At,and,Ats,Bts).
+
+/* These commented clauses were correct, but give a different
+ * order for allocated variables WRT pl2nl by Paul.
+ * So I've managed to complicate the generation to keep the
+ * compatibility test simple.
+
+tterm(n(N),Vs,[N],Vs).
+tterm(v(V),Vs,[V],Vs).
 tterm(c(F,As),Vs,Translated,Us) :-
  targs(As,Vs,A1s,A2s,Us),
  conj([F|A1s],and,A2s,Translated).
@@ -150,7 +191,7 @@ tbody([A|As],Vs,Bts,Zs) :-
  tterm(A,Vs,At,Us),
  tbody(As,Us,Ats,Zs),
  conj(At,and,Ats,Bts).
-
+*/
 %!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
 %
 genvar(V0s,[V|V0s]) :-
@@ -229,11 +270,11 @@ make_test(T,S) :-
 
 source_clause(Source,Clause) :-
     phrase(pl_source(Nl),Source),!,
-    Nl=[Clause].
+    Nl == [Clause].
 source_pl_source_nl(PlSource,NlSource) :-
     phrase(pl_source([PlClause]),PlSource),!,
     transl(PlClause,Translated),
-    phrase(nl_source(NlClause),NlSource),
+    phrase(nl_source(NlClause),NlSource),!,
     Translated == NlClause.
 
 %!  nl_source(-Parsed)// is det
@@ -327,14 +368,14 @@ ttest(add_loop_pl_nl) :-
         if
          add X Y Z .`
     ).
-/*
 test(add_goal) :-
     source_clause(
         `goal(R):-add(s(s(0)),s(s(0)),R).`,
-        r(c(goal,[v('R')]),[c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])])
+        r(c(goal,[v('R')]),
+          [c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])])
     ).
 test(add_goal_pl_nl) :-
-    source_clause(
+    source_pl_source_nl(
         `goal(R):-add(s(s(0)),s(s(0)),R).`,
         `goal R
          if
@@ -344,5 +385,5 @@ test(add_goal_pl_nl) :-
           _1 holds s _3 and
           _3 holds s 0 .`
     ).
-*/
+
 :- end_tests(boot_pl2nl).
