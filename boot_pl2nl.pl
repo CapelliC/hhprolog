@@ -157,16 +157,10 @@ hterm(v(V),_,_,Vs,V,[],Vs).
 hterm(T,[U|Us],Us,Vs,U,[U,holds|Bl],Zs) :-
  tterm(T,Vs,Bl,Zs).
 
-tbody([],Vs,[],Vs).
-tbody([A|As],Vs,Bts,Zs) :-
- tterm(A,Vs,At,Us),
- tbody(As,Us,Ats,Zs),
- conj(At,and,Ats,Bts).
-
 /* These commented clauses were correct, but give a different
  * order for allocated variables WRT pl2nl by Paul.
  * So I've managed to complicate the generation to keep the
- * compatibility test simple.
+ * compatible test simple.
 
 tterm(n(N),Vs,[N],Vs).
 tterm(v(V),Vs,[V],Vs).
@@ -185,13 +179,14 @@ hterm(v(V),Vs,V,[],Vs).
 hterm(T,Vs,G,[G,holds|Bl],Zs) :-
  genvar(Vs,Us,G),
  tterm(T,Us,Bl,Zs).
+*/
 
 tbody([],Vs,[],Vs).
 tbody([A|As],Vs,Bts,Zs) :-
  tterm(A,Vs,At,Us),
  tbody(As,Us,Ats,Zs),
  conj(At,and,Ats,Bts).
-*/
+
 %!  genvar(+VarsSoFar,-WithNewlyAllocated) is det
 %
 genvar(V0s,[V|V0s]) :-
