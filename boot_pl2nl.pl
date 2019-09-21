@@ -17,6 +17,19 @@
 :- use_module(library(debug)).
 :- use_module(library(plunit)).
 :- use_module(library(dcg/basics)).
+/*
+testz :-
+    phrase(pl_source(S), `memb(E,[E|_]).`), writeln(S).
+*/
+testz :-
+    tterm(c(.,[v('E'),v('_')]),[],T,X),
+    writeln(X/T).
+testz_ :-
+    tterm(c(.,[v('E'),v('_')]),[],T,X),
+    S=`memb(E,[E|_]).`,
+    phrase(pl_source([X]),S),
+    transl(X,T),
+    writeln(X/T).
 
 /*
 testz :-
@@ -36,11 +49,12 @@ testz :-
     tterm(c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')]),[],T,U),
     writeln(T/U).
 */
+/*
 testz :-
     transl(r(c(goal,[v('R')]),
              [c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
     writeln(T).
-
+*/
 /*
 testz :-
     transl(f(c(memb, [v('E'), l([v('E')]/v('_'))])), T),
@@ -160,7 +174,8 @@ hterm(T,[U|Us],Us,Vs,U,[U,holds|Bl],Zs) :-
 /* These commented clauses were correct, but give a different
  * order for allocated variables WRT pl2nl by Paul.
  * So I've managed to complicate the generation to keep the
- * compatible test simple.
+ * compatible test simple. Note targs/5 has been splitted in
+ * targs1/5 and targs2/6 and hterm/5 is hterm/7 now.
 
 tterm(n(N),Vs,[N],Vs).
 tterm(v(V),Vs,[V],Vs).
@@ -231,13 +246,17 @@ terms_(Ts) --> s, ",", s, terms(Ts).
 terms_([]) --> [].
 
 term(n(N)) --> number(N).
-term(l(L)) --> list(L).
 term(v(V)) --> var(V).
+term(L) --> list(L).
 term(C) --> callable(C).
-
-list(Ts/nil) --> s, "[", s, terms(Ts), s, "]".
-list(Ts/T) --> s, "[", s, terms(Ts), s, "|", s, term(T), s, "]".
-list(nil) --> s, "[", s, "]".
+/*
+list(l(H,T)) --> s, "[", s, term(H), s, tail(T), s, "]".
+list(l) --> s, "[", s, "]".
+*/
+list(c(.,[H,T])) --> s, "[", s, term(H), s, tail(T), s, "]".
+list(c(.,[])) --> s, "[", s, "]".
+tail(T) --> ",", list(T).
+tail(T) --> "|", term(T).
 
 funct(F) --> name(F).
 
