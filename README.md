@@ -44,6 +44,6 @@ Most data structures have been replaced by std::vector:
 Ported to Free Pascal from C++.
 Performance still to be evaluated.
 
-Most data structures have been adapted from Generics.Collection.
+Most data structures have been adapted from Generics.
 The recursive data structure used for term interfacing has been redesigned
 and a little optimized.
