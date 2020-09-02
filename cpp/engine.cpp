@@ -67,7 +67,7 @@ Spine* Engine::new_spine(const IntS& gs0, Int base, const IntList &rgs, Int ttop
     sp->xs = t_xs{-1,-1,-1};
     sp->k = 0;
     // note: cannot reuse G because the last spines.push_back could relocate the array
-    auto req_size = gs0.size() - 1 + ( rgs.size() > 0 ? rgs.size() -1 : 0 );
+    auto req_size = gs0.size() - 1 + ( rgs.size() > 0 ? rgs.size() - 1 : 0 );
 #if 0
     sp->gs.reserve(req_size);
 
@@ -229,7 +229,7 @@ Int Engine::addSym(cstr sym) {
         syms.push_back(sym);
         return Int(syms.size() - 1);
     }
-    return distance(syms.begin(), I);
+    return static_cast<Int>(distance(syms.begin(), I));
 }
 
 IntS Engine::getSpine(const IntS& cs) {

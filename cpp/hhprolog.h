@@ -10,6 +10,7 @@
 #ifndef HHPROLOG_H
 #define HHPROLOG_H
 
+#include <array>
 #include <string>
 #include <vector>
 #include <stdexcept>

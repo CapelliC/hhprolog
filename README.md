@@ -5,7 +5,7 @@ proposed by Paul Tarau.
 
 See http://www.cse.unt.edu/~tarau/research/2017/eng.pdf for details.
 
-Ported to Javascript and C++ by CapelliC.
+Ported to Javascript, C++ and Pascal by CapelliC.
 
 ---------
 
@@ -38,3 +38,12 @@ Slightly faster than Java 8.
 
 Most data structures have been replaced by std::vector:
   IntList, IntStack, IntMap, ObStack
+
+--------
+
+Ported to Free Pascal from C++.
+Performance still to be evaluated.
+
+Most data structures have been adapted from Generics.Collection.
+The recursive data structure used for term interfacing has been redesigned
+and a little optimized.
