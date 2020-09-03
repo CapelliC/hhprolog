@@ -69,34 +69,6 @@ begin
     Result.PushBack(o.Clone);
   end;
 end;
-{
-function TVecRecObj.toString: string;
-var
-  j: string = '';
-  i: TRecObj;
-begin
-  function hhObject.toString: String;
-    begin
-      case o.tag of
-  	    rt_:    exit('$null');
-  	    rt_i:   exit(o.i);
-  	    rt_ps:  exit(o.ps);
-  	    rt_vo:
-  		    begin
-  		      for i in o.vo do
-  		      begin
-  		        if j <> '' then
-  		          j := j + ',';
-  		        j := j + o.toString;
-  		      end;
-  		      exit('(' + j + ')');
-  	      end
-  	    ;
-  	  end;
-  	  raise exception.create('invalid hhObject');
-  end;
-end;
-}
 
 constructor TVecRecObj.Create;
 begin

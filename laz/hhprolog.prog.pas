@@ -22,7 +22,7 @@ uses
 
 type
 
-  T_Ask = hhObject;
+  T_Ask = Term;
 
   { Prog }
 
@@ -34,9 +34,9 @@ type
   protected
 
     function showClause(s: Clause): string;
-    function showTerm_o(O: hhObject): string; override;
-    class function st0(const args: hhObjects): string;
-    class function maybeNull(const O: hhObject): string;
+    function showTerm_o(O: Term): string; override;
+    class function st0(const args: Terms): string;
+    class function maybeNull(const O: Term): string;
     class function isListCons(name: cstr): boolean; inline;
     class function isOp(name: cstr): boolean; inline;
 
@@ -104,7 +104,7 @@ begin
   Result := r
 end;
 
-function Prog.showTerm_o(O: hhObject): string;
+function Prog.showTerm_o(O: Term): string;
 begin
   case O.o.tag of
     rt_i: exit(showTerm_i(O.o.i));
@@ -114,12 +114,12 @@ begin
   end;
 end;
 
-class function Prog.st0(const args: hhObjects): string;
+class function Prog.st0(const args: Terms): string;
   var
     r: string = '';
     name, qname: string;
-    tail: hhObject;
-    list: hhObjects;
+    tail: Term;
+    list: Terms;
     i: Int;
 begin
   if args.size > 0 then
@@ -184,7 +184,7 @@ begin
   exit(r);
 end;
 
-class function Prog.maybeNull(const O: hhObject): string;
+class function Prog.maybeNull(const O: Term): string;
 begin
   if O.o.tag = rt_ then
     exit('$null');
@@ -212,9 +212,13 @@ begin
   begin
     A := ask;
     if A.o.tag = rt_ then
-      break;
+      begin
+        A.free;
+        break;
+      end;
     if print_ans then
-      pp('[' + S(ctr) + '] ' + '*** ANSWER=' + showTerm_o(A))
+      pp('[' + S(ctr) + '] ' + '*** ANSWER=' + showTerm_o(A));
+    A.free;
   end;
   pp('TOTAL ANSWERS=' + S(ctr));
 end;

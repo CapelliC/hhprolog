@@ -80,7 +80,7 @@ procedure test_baseTypes;
     IVec = specialize hhVector<Integer>;
   var
     i: IVec;
-    o: hhObject;
+    o: Term;
 begin
   i := IVec.Create;
   i.PushBack(123);
@@ -88,7 +88,7 @@ begin
   i.PushBack(567);
   i.Free;
 
-  o := hhObject.create;
+  o := Term.create;
   o.Free;
 end;
 {$endif}

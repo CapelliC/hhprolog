@@ -27,8 +27,22 @@ type
   TToks = specialize TList<tok>;
 
   Ts = TStringList;
+  {
   Tss = specialize TList<Ts>;
   Tsss = specialize TList<Tss>;
+  }
+
+  { Tss }
+
+  Tss = class(specialize TList<Ts>)
+    destructor Destroy; override;
+  end;
+
+  { Tsss }
+
+  Tsss = class(specialize TList<Tss>)
+    destructor Destroy; override;
+  end;
 
 const
   // tokens as regex specification
@@ -203,6 +217,26 @@ begin
      else
       result.AddRange(Hss)
 	end;
+end;
+
+{ Tss }
+
+destructor Tss.Destroy;
+  {TBD var e: Ts;}
+begin
+  {for e in self do
+    e.Free;}
+  inherited Destroy;
+end;
+
+{ Tsss }
+
+destructor Tsss.Destroy;
+  {TBD var e: Tss;}
+begin
+  {for e in self do
+    e.Free;}
+  inherited Destroy;
 end;
 
 end.

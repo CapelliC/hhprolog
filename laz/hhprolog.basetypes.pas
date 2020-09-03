@@ -39,10 +39,10 @@ type
 
   t_refs = specialize TKeyClassWithAt<string, IntS>;
 
-  { hhObject }
+  { Term }
 
-  hhObject = TRecObj;
-  hhObjects = TVecRecObj;
+  Term = TRecObj;
+  Terms = TVecRecObj;
 
   Operator +(AString:String;ALongInt:LongInt):String;Overload;
   (*Operator +(ALongInt:LongInt;AString:String):String;Overload;*)

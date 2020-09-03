@@ -72,7 +72,7 @@ type
     function showTerm_i(x: Int): string; virtual;
 
     // raw display of a externalized term
-    function showTerm_o(O: hhObject): string; virtual;
+    function showTerm_o(O: Term): string; virtual;
 
     function showCell(w: Int): string;
     function showCells2(base: Int; len: Int): string;
@@ -119,7 +119,7 @@ type
     function deref(x: Int): Int;
 
     procedure ppTrail;
-    function exportTerm(x: Int): hhObject;
+    function exportTerm(x: Int): Term;
 
     {$ifdef ppengine}
     procedure ppc(const c: Clause);
@@ -152,7 +152,7 @@ type
     procedure popSpine;
 
     function yield_: Spine;
-    function ask: hhObject;
+    function ask: Term;
 
     function vcreate(l: size_t): hhprolog.Toks.Tss; INL//inline;
 
@@ -185,7 +185,8 @@ begin
   clauses.free;
   spines.free;
   cls.free;
-  c_spine_mem.free
+  c_spine_mem.free;
+  gs_pushBody.free;
 end;
 
 function Engine.stats: string;
@@ -202,11 +203,14 @@ begin
 end;
 
 function Engine.showTerm_i(x: Int): string;
+  var t: Term;
 begin
-  result := showTerm_o(exportTerm(x));
+  t := exportTerm(x);
+  result := showTerm_o(t);
+  t.free
 end;
 
-function Engine.showTerm_o(O: hhObject): string;
+function Engine.showTerm_o(O: Term): string;
 begin
     result := O.toString;
 end;
@@ -523,14 +527,13 @@ begin
       neck := cs.size
     else
       neck := detag(gs[1]);
-    //tgs := gs;
-    //result.PushBack(putClause(cs, tgs, neck));
     result.PushBack(putClause(cs, gs, neck));
 
     refs.free;
     cs.free;
-    //gs.free
+    Rss.Free;
   end;
+  Wsss.Free
 end;
 
 function Engine.getRef(x: Int): Int;
@@ -586,7 +589,7 @@ begin
   end
 end;
 
-function Engine.exportTerm(x: Int): hhObject;
+function Engine.exportTerm(x: Int): Term;
   var
     t, w, a_, n_, k, i, j: Int;
     args: TVecRecObj;
@@ -596,9 +599,9 @@ begin
   w := detag(x);
 
   case t of
-    C:  exit(hhObject.create(getSym(w)));
-    N:  exit(hhObject.create(w));
-    V:  exit(hhObject.create('V' + w.ToString));
+    C:  result := Term.create(getSym(w));
+    N:  result := Term.create(w);
+    V:  result := Term.create('V' + w.ToString);
     R: begin
       a_ := heap[w];
       if A <> tagOf(a_) then
@@ -611,7 +614,8 @@ begin
         j := k + i;
         args.PushBack(exportTerm(heap[j]))
       end;
-      exit(hhObject.create(args))
+      result := Term.create(args);
+      args.Free
     end;
     else
       fatal('*BAD TERM* %s', [showCell(x)]);
@@ -873,16 +877,12 @@ begin
 end;
 
 function Engine.getQuery: Clause;
-var x:clause;
 begin
-for x in clauses do
-  writeln(x.hgs.size);
-
   result := clauses.back
 end;
 
 function Engine.init: Spine;
-  var base{, i}: Int; G: Clause;
+  var base: Int; G: Clause;
 begin
   base := size;
   G := getQuery;
@@ -892,10 +892,6 @@ begin
 
   spines := hhSpines.create(K_POOL);
   spines.resize(K_POOL);
-  {
-  for i := 0 to spines.size - 1 do
-    spines[i] := Spine.create;
-  }
   spines_top := 0;
 
   gs_pushBody := IntS.create(K_PUSHBODY);
@@ -934,21 +930,20 @@ begin
   exit(nil)
 end;
 
-function Engine.ask: hhObject;
+function Engine.ask: Term;
   var
     res: Int;
     ans: Spine;
 begin
   query := yield_();
   if nil = query then
-      exit(hhObject.create);
+      exit(Term.Create);
   ans := answer(query.ttop);
   res := ans.hd;
   result := exportTerm(res);
   unwindTrail(query.ttop);
-  ans.free;
-  query.free;
-  query := nil
+  ans.Free;
+  FreeAndNil(query)
 end;
 
 function Engine.vcreate(l: size_t): hhprolog.Toks.Tss;
