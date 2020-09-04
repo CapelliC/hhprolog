@@ -66,11 +66,15 @@ procedure test_tokenize(pl_nl: string);
   var
     ltoks: ttoks;
     t: tok;
+    wsss: tsss;
 begin
   ltoks := makeToks(file2string(pl_nl));
   for t in ltoks do
     writeln(format('%s:%s,%d', [t.t,t.s,t.n]));
-  ltoks.free
+  ltoks.Free;
+
+  wsss := toSentences(file2string(pl_nl));
+  wsss.Free;
 end;
 {$endif}
 

@@ -531,7 +531,7 @@ begin
 
     refs.free;
     cs.free;
-    Rss.Free;
+    //Rss.Free; SIGSEGV after TList<T> changed to TObjectList<T>
   end;
   Wsss.Free
 end;
