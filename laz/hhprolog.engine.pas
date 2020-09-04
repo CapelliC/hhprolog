@@ -34,7 +34,7 @@ const
 	A = 5;
 	BAD = 7;
 
-  K_POOL = 10000;
+  K_POOL = 500;
   K_PUSHBODY = 100;
 
 type
@@ -160,7 +160,7 @@ type
     procedure index(_clauses: hhClauses);
 
 private
-    c_spine_mem: tSpineMem;
+    //c_spine_mem: tSpineMem;
 
 	end;
 
@@ -177,15 +177,25 @@ begin
 end;
 
 destructor Engine.Destroy;
+  var i: int;
 begin
   syms.free;
   heap.free;
   trail.free;
   ustack.free;
+
+  for i := 0 to clauses.size-1 do
+    if assigned(clauses[i]) then
+      clauses[i].free;
   clauses.free;
+
+  for i := 0 to spines.size-1 do
+    if assigned(spines[i]) then
+      spines[i].free;
   spines.free;
+
   cls.free;
-  c_spine_mem.free;
+  //c_spine_mem.free;
   gs_pushBody.free;
 end;
 
@@ -197,8 +207,8 @@ begin
       + spines_top + ' of ' + spines.size + ' '
       + trail.size + ' '
       + ustack.size + ' [ ';
-  for c in c_spine_mem.keys do
-    result := result + c + ':' + c_spine_mem[c] + ' ';
+  //for c in c_spine_mem.keys do
+    //result := result + c + ':' + c_spine_mem[c] + ' ';
   result := result + ']';
 end;
 
@@ -260,13 +270,15 @@ function Engine.new_spine(gs0: IntS; base: Int; rgs: IntList; ttop: Int): Spine;
     req_size, x, y: size_t;
 begin
   if not assigned(spines[spines_top]) then
-    spines[spines_top] := Spine.create;
+    spines[spines_top] := Spine.create
+  else
+    spines[spines_top].cs.free;
 
   sp := spines[spines_top];
   inc(spines_top);
 
   sp.hd := gs0[0];
-  sp.cs := cls;
+  sp.cs := cls.Slice(0); // copy
   sp.base := base;
   sp.ttop := ttop;
   sp.xs[0] := -1; sp.xs[1] := -1; sp.xs[2] := -1;
@@ -443,7 +455,7 @@ function Engine.dload(s: cstr): hhClauses;
     Wsss: Tsss;
     Wss, Rss: Tss;
     Ws: Ts;
-    cs, gs{, tgs}, &Is{, r_}: IntS;
+    cs, gs, &Is: IntS;
     k, l, leader, i, j, neck: Int;
     L_, kIs, w, w_: string;
     refs: t_refs;
@@ -478,8 +490,6 @@ begin
           inc(k);
           end;
         'v': begin
-          //r_ := refs.At(L_);
-          //r_.PushBack(k);
           refs.At(L_).PushBack(k);
           cs.PushBack(tag(BAD, k));
           inc(k);
@@ -522,6 +532,8 @@ begin
             continue;
           cs[i] := tag(R, leader)
         end;
+
+      &Is.free
     end;
     if 1 = gs.size then
       neck := cs.size
@@ -531,7 +543,6 @@ begin
 
     refs.free;
     cs.free;
-    //Rss.Free; SIGSEGV after TList<T> changed to TObjectList<T>
   end;
   Wsss.Free
 end;
@@ -720,7 +731,7 @@ begin
   len := cs.size;
   pushCells2(b, 0, len, cs);
   for i := 0 to gs.size - 1 do
-      gs[i] := relocate(b, gs[i]);
+    gs[i] := relocate(b, gs[i]);
   XC := Clause.create;
   getIndexables(gs[0], XC);
   XC.len := len;
@@ -882,7 +893,7 @@ begin
 end;
 
 function Engine.init: Spine;
-  var base: Int; G: Clause;
+  var base, s: Int; G: Clause;
 begin
   base := size;
   G := getQuery;
@@ -893,6 +904,8 @@ begin
   spines := hhSpines.create(K_POOL);
   spines.resize(K_POOL);
   spines_top := 0;
+  //for s := 0 to K_POOL-1 do
+    //spines[s] := Spine.create;
 
   gs_pushBody := IntS.create(K_PUSHBODY);
 
