@@ -540,7 +540,7 @@ begin
     else
       neck := detag(gs[1]);
     result.PushBack(putClause(cs, gs, neck));
-
+    Rss.free;
     refs.free;
     cs.free;
   end;

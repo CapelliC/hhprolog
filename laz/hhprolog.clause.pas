@@ -103,8 +103,8 @@ end;
 
 destructor Clause.Destroy;
 begin
+  hgs.Free;
   inherited Destroy;
-  hgs.Free
 end;
 
 end.

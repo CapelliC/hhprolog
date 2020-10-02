@@ -56,6 +56,12 @@ function SubStr(s: string; start: integer; count: integer = -1): string; inline;
 
 implementation
 
+function clone(Ws: Ts): Ts;
+  begin
+    result := Ts.create;
+    result.assign(Ws)
+  end;
+
 {
 class operator Tok.initialize(var aTok:Tok);
 begin
@@ -175,19 +181,20 @@ begin
   Rs := Ts.Create;
   for i := 1 to l do
   begin
-      if 1 = i then
-        Vi := V
-      else
-        Vi := V + '__' + IntToStr(i - 1);
-      Vii := V + '__' + IntToStr(i);
-      Rs.Add('h:' + Vi); Rs.Add('c:list'); Rs.Add(Ws[i]);
-      if i = l - 1 then
-        Rs.Add('c:nil')
-      else
-        Rs.Add('v:' + Vii);
-      Rss.Add(Rs);
-      Rs := Ts.Create;
+    if 1 = i then
+      Vi := V
+    else
+      Vi := V + '__' + IntToStr(i - 1);
+    Vii := V + '__' + IntToStr(i);
+    Rs.Add('h:' + Vi); Rs.Add('c:list'); Rs.Add(Ws[i]);
+    if i = l - 1 then
+      Rs.Add('c:nil')
+    else
+      Rs.Add('v:' + Vii);
+    Rss.Add(Rs);
+    Rs := Ts.Create;
 	end;
+  Rs.Free;
   result := Rss;
 end;
 
@@ -199,8 +206,8 @@ begin
   begin
     Hss := maybeExpand(Ws);
     if Hss.Count = 0 then
-      result.Add(Ws)
-     else
+      result.Add(clone(Ws)) // will be deleted by Rss.free; in Engine.dload
+    else
       result.AddRange(Hss)
 	end;
 end;
