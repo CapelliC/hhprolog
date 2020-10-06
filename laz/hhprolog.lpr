@@ -40,6 +40,21 @@ type
 
 { THHPrologApplication }
 
+{$macro on}
+{$define test_run:=test_run_}
+
+{$ifdef test_alloc}
+procedure test_alloc(pl_nl: string);
+begin
+  with Engine.create('') do
+    begin
+      test_alloc(file2string(pl_nl));
+      Free
+    end;
+end;
+{$endif}
+
+{$ifdef test_run}
 procedure test_run(pl_nl: string);
 begin
   with Prog.create(file2string(pl_nl)) do
@@ -49,6 +64,7 @@ begin
       Free
     end;
 end;
+{$endif}
 
 {$ifdef test_load}
 procedure test_load(pl_nl: string);
@@ -140,7 +156,13 @@ begin
   test_load(PlNl_file);
   {$endif}
 
+  {$ifdef test_run}
   test_run(PlNl_file);
+  {$endif}
+
+  {$ifdef test_alloc}
+  test_alloc(PlNl_file);
+  {$endif}
 
   // stop program loop
   Terminate;

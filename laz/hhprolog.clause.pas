@@ -52,7 +52,7 @@ Spine = class
 
     k: Int;
     xs: t_xs;    // index elements
-    cs: IntS;    // array of  clauses known to be unifiable with top goal in gs
+    cs: IntS;    // array of clauses known to be unifiable with top goal in gs
 
     constructor Create;
     constructor Create(_hd: Int; _ttop: Int);
@@ -98,7 +98,6 @@ end;
 constructor Clause.Create;
 begin
   xs[0] := -1; xs[1] := -1; xs[2] := -1;
-  hgs := IntS.create;
 end;
 
 destructor Clause.Destroy;

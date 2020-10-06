@@ -27,8 +27,12 @@ type
   TToks = specialize TList<tok>;
 
   Ts = TStringList;
+  //Tss = specialize TList<Ts>;
+  //Tsss = specialize TList<Tss>;
   Tss = specialize TObjectList<Ts>;
   Tsss = specialize TObjectList<Tss>;
+
+  //pTss = ^Tss;
 
 const
   // tokens as regex specification
@@ -45,6 +49,8 @@ const
 //NIL   = 'nil',
   LISTS = 'lists';
   &IS   = 'is';  // ?
+
+  N_BITS_INT = 28;
 
 function makeToks(s: string):  TToks;
 
@@ -151,7 +157,7 @@ begin
       &VAR:
         Ws.Add('v:' + t.s);
       NUM:
-        if t.n < (1 << 28) then
+        if t.n < (1 << N_BITS_INT) then
           Ws.Add('n:' + t.s)
         else
           Ws.Add('c:' + t.s);
@@ -167,15 +173,14 @@ end;
 
 function maybeExpand(Ws: Ts): Tss;
   var
-    Rss: Tss;
     W, V, Vi, Vii: string;
     l, i: integer;
     Rs: Ts;
 begin
-  Rss := Tss.Create;
+  result := Tss.Create;
   W := Ws[0];
   if (Length(W) < 2) or ('l:' <> SubStr(W, 0, 2)) then
-    exit(Rss);
+    exit;
   l := Ws.Count;
   V := SubStr(W, 2);
   Rs := Ts.Create;
@@ -186,20 +191,20 @@ begin
     else
       Vi := V + '__' + IntToStr(i - 1);
     Vii := V + '__' + IntToStr(i);
-    Rs.Add('h:' + Vi); Rs.Add('c:list'); Rs.Add(Ws[i]);
+    Rs.AddStrings(['h:' + Vi, 'c:list', Ws[i]]);
     if i = l - 1 then
       Rs.Add('c:nil')
     else
       Rs.Add('v:' + Vii);
-    Rss.Add(Rs);
+    result.Add(Rs);
     Rs := Ts.Create;
 	end;
   Rs.Free;
-  result := Rss;
 end;
 
 function mapExpand(Wss: Tss) : Tss;
-  var Hss: Tss; Ws: Ts;
+  var Hss: Tss;
+      Ws: Ts;
 begin
   result := Tss.Create;
   for Ws in Wss do
@@ -208,7 +213,8 @@ begin
     if Hss.Count = 0 then
       result.Add(clone(Ws)) // will be deleted by Rss.free; in Engine.dload
     else
-      result.AddRange(Hss)
+      result.AddRange(Hss);
+    Hss.Free
 	end;
 end;
 

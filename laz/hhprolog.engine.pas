@@ -46,6 +46,7 @@ type
     destructor Destroy; override;
 
     function stats: string;
+    procedure test_alloc(asm_nl_source: string);
 
   protected
 
@@ -159,9 +160,6 @@ type
     procedure put(keys: t_xs; val: Int); INL//inline;
     procedure index(_clauses: hhClauses);
 
-private
-    //c_spine_mem: tSpineMem;
-
 	end;
 
 implementation
@@ -171,9 +169,12 @@ begin
   top := -1;
   syms := hhSyms.create;
   makeHeap;
-  clauses := dload(asm_nl_source);
-  cls := toNums(clauses);
-  query := init
+  if asm_nl_source<>'' then
+  begin
+    clauses := dload(asm_nl_source);
+    cls := toNums(clauses);
+    query := init
+  end;
 end;
 
 destructor Engine.Destroy;
@@ -184,31 +185,29 @@ begin
   trail.free;
   ustack.free;
 
-  for i := 0 to clauses.size-1 do
-    if assigned(clauses[i]) then
-      clauses[i].free;
+  if clauses<>nil then
+    for i := 0 to clauses.size-1 do
+      if assigned(clauses[i]) then
+        clauses[i].free;
   clauses.free;
 
-  for i := 0 to spines.size-1 do
-    if assigned(spines[i]) then
-      spines[i].free;
+  if spines<>nil then
+    for i := 0 to spines.size-1 do
+      if assigned(spines[i]) then
+        spines[i].free;
   spines.free;
 
   cls.free;
-  //c_spine_mem.free;
   gs_pushBody.free;
 end;
 
 function Engine.stats: string;
-  var c: int;
 begin
   result :=
     heap.size.toString + ' '
       + spines_top + ' of ' + spines.size + ' '
       + trail.size + ' '
       + ustack.size + ' [ ';
-  //for c in c_spine_mem.keys do
-    //result := result + c + ':' + c_spine_mem[c] + ' ';
   result := result + ']';
 end;
 
@@ -270,32 +269,25 @@ function Engine.new_spine(gs0: IntS; base: Int; rgs: IntList; ttop: Int): Spine;
     req_size, x, y: size_t;
 begin
   if not assigned(spines[spines_top]) then
-    spines[spines_top] := Spine.create
-  else
-    spines[spines_top].cs.free;
+    spines[spines_top] := Spine.create;
 
   sp := spines[spines_top];
   inc(spines_top);
 
   sp.hd := gs0[0];
+  sp.cs.free;
   sp.cs := cls.Slice(0); // copy
   sp.base := base;
   sp.ttop := ttop;
   sp.xs[0] := -1; sp.xs[1] := -1; sp.xs[2] := -1;
   sp.k := 0;
+
   // note: cannot reuse G because the last spines.push_back could relocate the array
   //auto req_size = gs0.size() - 1 + ( rgs.size() > 0 ? rgs.size() -1 : 0 );
   req_size := gs0.size - 1;
-  if rgs.size > 0 then
+  if (rgs <> nil) and (rgs.size > 0) then
     req_size := req_size + rgs.size - 1;
-{$IF 0}
-  sp->gs.reserve(req_size);
 
-  for (size_t x = 1; x < gs.size(); ++x)
-      sp->gs.push_back(gs[x]);
-  for (size_t x = 1; x < rgs.size(); ++x)
-      sp->gs.push_back(rgs[x]);
-{$ELSE}
   sp.gs.resize(req_size);
   y := 0;
   if gs0.size > 0 then
@@ -304,14 +296,13 @@ begin
       sp.gs[y] := gs0[x];
       inc(y)
     end;
-  if rgs.size > 0 then
+  if (rgs <> nil) and (rgs.size > 0) then
     for x := 1 to rgs.size - 1 do
     begin
       sp.gs[y] := rgs[x];
       inc(y)
     end;
-{$ENDIF}
-  //c_spine_mem[req_size]++;
+
   result := sp;
 end;
 
@@ -449,6 +440,35 @@ begin
   if 1 + top + more >= heap.size then
     expand
 end;
+{
+procedure dump(h: string; Wss: pTss);
+var ws: ts; w: string;
+begin
+  writeln(format('- %s (%p)',[h,wss]));
+  for ws in wss^ do
+  begin
+    writeln(format('-- %d',[ws.Count]));
+    for w in ws do
+    begin
+      writeln(format('--- %s',[w]))
+    end;
+  end;
+end;
+}
+procedure Engine.test_alloc(asm_nl_source: string);
+  var
+    Wsss: Tsss;
+    Wss, Rss: Tss;
+begin
+  Wsss := toSentences(asm_nl_source);
+  for Wss in Wsss do
+  begin
+    Rss := mapExpand(Wss);
+    Rss.free
+  end;
+  Wsss.free
+end;
+
 
 function Engine.dload(s: cstr): hhClauses;
   var
@@ -464,10 +484,12 @@ begin
   Wsss := toSentences(s);
   for Wss in Wsss do
   begin
+
     refs := t_refs.create;
     cs := IntS.create;
     gs := IntS.create;
     Rss := mapExpand(Wss);
+
     k := 0;
     for ws in Rss do
     begin
@@ -540,6 +562,7 @@ begin
     else
       neck := detag(gs[1]);
     result.PushBack(putClause(cs, gs, neck));
+    //for Ws in Rss do Ws.Free;
     Rss.free;
     refs.free;
     cs.free;
@@ -893,7 +916,7 @@ begin
 end;
 
 function Engine.init: Spine;
-  var base, s: Int; G: Clause;
+  var base: Int; G: Clause;
 begin
   base := size;
   G := getQuery;
@@ -904,12 +927,10 @@ begin
   spines := hhSpines.create(K_POOL);
   spines.resize(K_POOL);
   spines_top := 0;
-  //for s := 0 to K_POOL-1 do
-    //spines[s] := Spine.create;
 
   gs_pushBody := IntS.create(K_PUSHBODY);
 
-  result := new_spine(G.hgs, base, IntS.create, -1)
+  result := new_spine(G.hgs, base, nil, -1)
 end;
 
 function Engine.answer(ttop: Int): Spine;
