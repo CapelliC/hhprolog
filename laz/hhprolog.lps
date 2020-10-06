@@ -7,29 +7,31 @@
       <Unit0>
         <Filename Value="hhprolog.lpr"/>
         <IsPartOfProject Value="True"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="34"/>
-        <CursorPos X="16" Y="60"/>
-        <UsageCount Value="98"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="4"/>
+        <TopLine Value="123"/>
+        <CursorPos X="61" Y="146"/>
+        <UsageCount Value="101"/>
+        <Loaded Value="True"/>
       </Unit0>
       <Unit1>
         <Filename Value="hhprolog.toks.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hhprolog.Toks"/>
-        <EditorIndex Value="-1"/>
-        <TopLine Value="186"/>
-        <CursorPos Y="212"/>
-        <UsageCount Value="98"/>
+        <EditorIndex Value="3"/>
+        <TopLine Value="187"/>
+        <CursorPos Y="204"/>
+        <UsageCount Value="101"/>
+        <Loaded Value="True"/>
       </Unit1>
       <Unit2>
         <Filename Value="hhprolog.engine.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hhprolog.Engine"/>
-        <IsVisibleTab Value="True"/>
         <EditorIndex Value="2"/>
-        <TopLine Value="264"/>
-        <CursorPos Y="278"/>
-        <UsageCount Value="98"/>
+        <TopLine Value="156"/>
+        <CursorPos Y="174"/>
+        <UsageCount Value="101"/>
         <Bookmarks Count="1">
           <Item0 Y="939"/>
         </Bookmarks>
@@ -39,9 +41,9 @@
         <Filename Value="hhprolog.prog.pas"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="hhprolog.Prog"/>
-        <TopLine Value="25"/>
-        <CursorPos X="15" Y="31"/>
-        <UsageCount Value="98"/>
+        <TopLine Value="205"/>
+        <CursorPos Y="224"/>
+        <UsageCount Value="101"/>
         <Loaded Value="True"/>
       </Unit3>
       <Unit4>
@@ -50,14 +52,14 @@
         <UnitName Value="hhprolog.baseTypes"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="8" Y="45"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="101"/>
       </Unit4>
       <Unit5>
         <Filename Value="hhprolog.vector.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="45" Y="24"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="101"/>
       </Unit5>
       <Unit6>
         <Filename Value="hhprolog.file2string.pas"/>
@@ -65,14 +67,14 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="12"/>
         <CursorPos Y="25"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="101"/>
       </Unit6>
       <Unit7>
         <Filename Value="hhprolog.recobj.pas"/>
         <IsPartOfProject Value="True"/>
         <EditorIndex Value="-1"/>
         <CursorPos X="40" Y="185"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="101"/>
       </Unit7>
       <Unit8>
         <Filename Value="hhprolog.clause.pas"/>
@@ -80,7 +82,7 @@
         <EditorIndex Value="1"/>
         <TopLine Value="61"/>
         <CursorPos X="10" Y="77"/>
-        <UsageCount Value="98"/>
+        <UsageCount Value="101"/>
         <Loaded Value="True"/>
       </Unit8>
       <Unit9>
@@ -89,7 +91,7 @@
         <UnitName Value="hhprolog.HashMapWithAt"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="10"/>
-        <UsageCount Value="83"/>
+        <UsageCount Value="86"/>
       </Unit9>
       <Unit10>
         <Filename Value="hhprolog.keyclasswithat.pas"/>
@@ -97,7 +99,7 @@
         <UnitName Value="hhprolog.KeyClassWithAt"/>
         <EditorIndex Value="-1"/>
         <CursorPos Y="10"/>
-        <UsageCount Value="79"/>
+        <UsageCount Value="82"/>
       </Unit10>
       <Unit11>
         <Filename Value="fatalerr.pas"/>
@@ -105,7 +107,7 @@
         <EditorIndex Value="-1"/>
         <TopLine Value="5"/>
         <CursorPos Y="17"/>
-        <UsageCount Value="74"/>
+        <UsageCount Value="77"/>
       </Unit11>
       <Unit12>
         <Filename Value="/usr/share/fpcsrc/3.2.0/packages/fcl-stl/src/gvector.pp"/>
@@ -159,37 +161,148 @@
         <DefaultSyntaxHighlighter Value="Perl"/>
       </Unit18>
     </Units>
-    <JumpHistory Count="5" HistoryIndex="4">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
-        <Filename Value="hhprolog.engine.pas"/>
-        <Caret Line="272" TopLine="262"/>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="212" TopLine="187"/>
       </Position1>
       <Position2>
         <Filename Value="hhprolog.engine.pas"/>
-        <Caret Line="82" Column="14" TopLine="66"/>
+        <Caret Line="491" TopLine="484"/>
       </Position2>
       <Position3>
-        <Filename Value="hhprolog.engine.pas"/>
-        <Caret Line="277" TopLine="264"/>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="198" Column="63" TopLine="172"/>
       </Position3>
       <Position4>
-        <Filename Value="hhprolog.engine.pas"/>
-        <Caret Line="280" Column="3" TopLine="257"/>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="184" TopLine="172"/>
       </Position4>
       <Position5>
-        <Filename Value="hhprolog.engine.pas"/>
-        <Caret Line="282" Column="3" TopLine="264"/>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="212" TopLine="187"/>
       </Position5>
+      <Position6>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="491" TopLine="471"/>
+      </Position6>
+      <Position7>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="493" TopLine="471"/>
+      </Position7>
+      <Position8>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="494" TopLine="471"/>
+      </Position8>
+      <Position9>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="496" TopLine="481"/>
+      </Position9>
+      <Position10>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="497" TopLine="481"/>
+      </Position10>
+      <Position11>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="498" TopLine="481"/>
+      </Position11>
+      <Position12>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="499" TopLine="481"/>
+      </Position12>
+      <Position13>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="501" TopLine="481"/>
+      </Position13>
+      <Position14>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="217" Column="7" TopLine="187"/>
+      </Position14>
+      <Position15>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="184" TopLine="166"/>
+      </Position15>
+      <Position16>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="212" TopLine="187"/>
+      </Position16>
+      <Position17>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="491" TopLine="478"/>
+      </Position17>
+      <Position18>
+        <Filename Value="hhprolog.engine.pas"/>
+        <Caret Line="174" TopLine="156"/>
+      </Position18>
+      <Position19>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="69" TopLine="51"/>
+      </Position19>
+      <Position20>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="71" TopLine="51"/>
+      </Position20>
+      <Position21>
+        <Filename Value="hhprolog.toks.pas"/>
+        <Caret Line="213" Column="18" TopLine="186"/>
+      </Position21>
+      <Position22>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="72" Column="11" TopLine="51"/>
+      </Position22>
+      <Position23>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="147" TopLine="119"/>
+      </Position23>
+      <Position24>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="129" Column="37" TopLine="123"/>
+      </Position24>
+      <Position25>
+        <Filename Value="hhprolog.prog.pas"/>
+        <Caret Line="224" TopLine="205"/>
+      </Position25>
+      <Position26>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="147" TopLine="123"/>
+      </Position26>
+      <Position27>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="151" TopLine="123"/>
+      </Position27>
+      <Position28>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="147" TopLine="123"/>
+      </Position28>
+      <Position29>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="151" TopLine="123"/>
+      </Position29>
+      <Position30>
+        <Filename Value="hhprolog.lpr"/>
+        <Caret Line="147" TopLine="123"/>
+      </Position30>
     </JumpHistory>
     <RunParams>
       <FormatVersion Value="2"/>
       <Modes Count="1" ActiveMode="default">
         <Mode0 Name="default">
           <local>
-            <CommandLineParams Value="../test/mini.pl.nl"/>
+            <CommandLineParams Value="../test/add.pl.nl"/>
           </local>
         </Mode0>
       </Modes>
     </RunParams>
   </ProjectSession>
+  <Debugging>
+    <BreakPoints Count="1">
+      <Item1>
+        <Kind Value="bpkSource"/>
+        <WatchScope Value="wpsLocal"/>
+        <WatchKind Value="wpkWrite"/>
+        <Source Value="hhprolog.lpr"/>
+        <Line Value="147"/>
+      </Item1>
+    </BreakPoints>
+  </Debugging>
 </CONFIG>

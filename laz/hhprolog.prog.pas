@@ -219,6 +219,7 @@ begin
     if print_ans then
       pp('[' + S(ctr) + '] ' + '*** ANSWER=' + showTerm_o(A));
     A.free;
+    inc(ctr)
   end;
   pp('TOTAL ANSWERS=' + S(ctr));
 end;

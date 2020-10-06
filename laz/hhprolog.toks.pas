@@ -174,28 +174,27 @@ end;
 function maybeExpand(Ws: Ts): Tss;
   var
     W, V, Vi, Vii: string;
-    l, i: integer;
+    n, i: integer;
     Rs: Ts;
 begin
   result := Tss.Create;
   W := Ws[0];
   if (Length(W) < 2) or ('l:' <> SubStr(W, 0, 2)) then
     exit;
-  l := Ws.Count;
+  n := Ws.Count;
   V := SubStr(W, 2);
   Rs := Ts.Create;
-  for i := 1 to l do
+  for i := 1 to n - 1 do
   begin
     if 1 = i then
       Vi := V
     else
       Vi := V + '__' + IntToStr(i - 1);
     Vii := V + '__' + IntToStr(i);
-    Rs.AddStrings(['h:' + Vi, 'c:list', Ws[i]]);
-    if i = l - 1 then
-      Rs.Add('c:nil')
+    if i = n - 1 then
+      Rs.AddStrings(['h:' + Vi, 'c:list', Ws[i], 'c:nil'])
     else
-      Rs.Add('v:' + Vii);
+      Rs.AddStrings(['h:' + Vi, 'c:list', Ws[i], 'v:' + Vii]);
     result.Add(Rs);
     Rs := Ts.Create;
 	end;
@@ -204,16 +203,17 @@ end;
 
 function mapExpand(Wss: Tss) : Tss;
   var Hss: Tss;
-      Ws: Ts;
+      Ws, Cs: Ts;
 begin
   result := Tss.Create;
   for Ws in Wss do
   begin
     Hss := maybeExpand(Ws);
     if Hss.Count = 0 then
-      result.Add(clone(Ws)) // will be deleted by Rss.free; in Engine.dload
+      result.Add(clone(Ws))
     else
-      result.AddRange(Hss);
+      for Cs in Hss do
+        result.Add(clone(Cs));
     Hss.Free
 	end;
 end;

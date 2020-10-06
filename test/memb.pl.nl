@@ -9,5 +9,5 @@ if
 goal E 
 if
   memb E _0 and
-  _0 lists 0 1 2 3 4 5 6 7 8 9 10 11 .
+  _0 lists 0 1 2 3 .
 

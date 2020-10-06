@@ -40,10 +40,7 @@ type
 
 { THHPrologApplication }
 
-{$macro on}
-{$define test_run:=test_run_}
-
-{$ifdef test_alloc}
+{$if 0}
 procedure test_alloc(pl_nl: string);
 begin
   with Engine.create('') do
@@ -54,7 +51,7 @@ begin
 end;
 {$endif}
 
-{$ifdef test_run}
+{$if 1}
 procedure test_run(pl_nl: string);
 begin
   with Prog.create(file2string(pl_nl)) do
@@ -66,7 +63,7 @@ begin
 end;
 {$endif}
 
-{$ifdef test_load}
+{$if 0}
 procedure test_load(pl_nl: string);
 begin
   with Prog.create(file2string(pl_nl)) do
@@ -77,7 +74,7 @@ begin
 end;
 {$endif}
 
-{$ifdef test_tokenize}
+{$if 0}
 procedure test_tokenize(pl_nl: string);
   var
     ltoks: ttoks;
@@ -94,7 +91,7 @@ begin
 end;
 {$endif}
 
-{$ifdef test_baseTypes}
+{$if 0}
 procedure test_baseTypes;
   type
     IVec = specialize hhVector<Integer>;
@@ -144,25 +141,11 @@ begin
   else
     PlNl_file := '../test/add.pl.nl';
 
-  {$ifdef test_baseTypes}
-  test_baseTypes;
-  {$endif}
-
-  {$ifdef test_tokenize}
-  test_tokenize(PlNl_file);
-  {$endif}
-
-  {$ifdef test_load}
-  test_load(PlNl_file);
-  {$endif}
-
-  {$ifdef test_run}
+  //test_baseTypes;
+  //test_tokenize(PlNl_file);
+  //test_load(PlNl_file);
   test_run(PlNl_file);
-  {$endif}
-
-  {$ifdef test_alloc}
-  test_alloc(PlNl_file);
-  {$endif}
+  //test_alloc(PlNl_file);
 
   // stop program loop
   Terminate;
