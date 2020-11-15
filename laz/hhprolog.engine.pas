@@ -679,40 +679,40 @@ begin
     x1 := deref(ustack.back); ustack.popback;
     x2 := deref(ustack.back); ustack.popback;
     if x1 <> x2 then
+    begin
+      t1 := tagOf(x1);
+      t2 := tagOf(x2);
+      w1 := detag(x1);
+      w2 := detag(x2);
+      if isVAR(x1) then
       begin
-        t1 := tagOf(x1);
-        t2 := tagOf(x2);
-        w1 := detag(x1);
-        w2 := detag(x2);
-        if isVAR(x1) then
-        begin
-          if isVAR(x2) and (w2 > w1) then
-          begin
-            heap[w2] := x1;
-            if w2 <= base then
-              trail.PushBack(x2)
-          end
-          else
-          begin
-            heap[w1] := x2;
-            if w1 <= base then
-              trail.PushBack(x1)
-          end
-        end
-        else if isVAR(x2) then
+        if isVAR(x2) and (w2 > w1) then
         begin
           heap[w2] := x1;
           if w2 <= base then
             trail.PushBack(x2)
         end
-        else if (R = t1) and (R = t2) then
+        else
         begin
-          if not unify_args(w1, w2) then
-            exit(false)
+          heap[w1] := x2;
+          if w1 <= base then
+            trail.PushBack(x1)
         end
+      end
+      else if isVAR(x2) then
+      begin
+        heap[w2] := x1;
+        if w2 <= base then
+          trail.PushBack(x2)
+      end
+      else if (R = t1) and (R = t2) then
+      begin
+        if not unify_args(w1, w2) then
+          exit(false)
       end
       else
         exit(false)
+    end
   end;
   exit(true);
 end;
