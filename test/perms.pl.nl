@@ -35,7 +35,7 @@ if
   _1 lists X .
 
 input _0 and
-  _0 lists 1 2 3 4 5 6 7 8 9 10 11 .
+  _0 lists 1 2 3 4 5 6 7 8 .
 
 goal Y 
 if
