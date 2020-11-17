@@ -171,6 +171,9 @@ begin
   exit(Wsss)
 end;
 
+(**
+ * expands a "Xs lists .." statements to "Xs holds" statements
+ *)
 function maybeExpand(Ws: Ts): Tss;
   var
     W, V, Vi, Vii: string;
@@ -201,6 +204,9 @@ begin
   Rs.Free;
 end;
 
+(**
+ * expands, if needed, "lists" statements in sequence of statements
+ *)
 function mapExpand(Wss: Tss) : Tss;
   var Hss: Tss;
       Ws, Cs: Ts;

@@ -34,8 +34,8 @@ cls _0 Tail and
   _6 holds sel X Zs Ys .
 
 input _0 _1 and
-  _0 lists 1 2 3 4 5 6 7 8 9 10 11 and
-  _1 lists 11 10 9 8 7 6 5 4 3 2 1 .
+  _0 lists 1 2 3 4 5 6 7 8 and
+  _1 lists 8 7 6 5 4 3 2 1 .
 
 goal Y 
 if

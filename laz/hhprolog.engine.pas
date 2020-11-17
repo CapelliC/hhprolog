@@ -17,6 +17,7 @@ uses
     Classes, SysUtils, math
     ,hhprolog.baseTypes
     ,hhprolog.clause
+    ,hhprolog.spine
     ,hhprolog.recobj
     ,hhprolog.toks
     ,fatalerr
@@ -25,6 +26,10 @@ uses
 {$macro on}
 {$define INL:=}
 
+(**
+ * tags of our heap cells - that can also be seen as
+ * instruction codes in a compiled implementation
+ *)
 const
 	V = 0;
 	U = 1;
@@ -164,6 +169,7 @@ type
 
 implementation
 
+// Builds a new engine from a natural-language style assembler.nl file
 constructor Engine.Create(asm_nl_source: string);
 begin
   top := -1;
@@ -171,6 +177,7 @@ begin
   makeHeap;
   if asm_nl_source<>'' then
   begin
+    // trimmed down clauses ready to be quickly relocated to the heap
     clauses := dload(asm_nl_source);
     cls := toNums(clauses);
     query := init
@@ -224,6 +231,9 @@ begin
     result := O.toString;
 end;
 
+(**
+ * raw display of a cell as tag : value
+ *)
 function Engine.showCell(w: Int): string;
   var
     t, val: Int;
@@ -262,6 +272,16 @@ begin
   for k := 0 to cs.size do
     result := result + '[' + k + ']' + showCell(cs[k]) + ' ';
 end;
+
+(**
+ * runtime representation of an immutable list of goals
+ * together with top of heap and trail pointers
+ * and current clause tried out by head goal
+ * as well as registers associated to it
+ *
+ * note that parts of this immutable lists
+ * are shared among alternative branches
+ *)
 
 function Engine.new_spine(gs0: IntS; base: Int; rgs: IntList; ttop: Int): Spine;
   var
@@ -306,21 +326,37 @@ begin
   result := sp;
 end;
 
+(**
+ * tags an integer value while flipping it into a negative
+ * number to ensure that untagged cells are always negative and the tagged
+ * ones are always positive - a simple way to ensure we do not mix them up
+ * at runtime
+ *)
 class function Engine.tag(t, w: Int): Int;
 begin
   result := -((w << 3) + t)
 end;
 
+(**
+ * removes tag after flipping sign
+ *)
 class function Engine.detag(w: Int): Int;
 begin
   result := -w >> 3
 end;
 
+(**
+ * extracts the tag of a cell
+ *)
 class function Engine.tagOf(w: Int): Int;
 begin
   result := -w and 7
 end;
 
+(**
+ * true if cell x is a variable
+ * assumes that variables are tagged with 0 or 1
+ *)
 class function Engine.isVAR(x: Int): boolean;
 begin
   result := tagOf(x) < 2
@@ -389,6 +425,7 @@ begin
   result := S.gs.size > 0
 end;
 
+// places an identifier in the symbol table
 function Engine.addSym(sym: cstr): Int;
   var i: Int;
 begin
@@ -400,6 +437,8 @@ begin
   exit(syms.size - 1);
 end;
 
+// returns the symbol associated to an integer index
+// in the symbol table
 function Engine.getSym(w: Int): cstr;
 begin
   if (w < 0) or (w >= syms.size) then
@@ -407,6 +446,24 @@ begin
   result := syms[w]
 end;
 
+(** runtime areas:
+ *
+ * the heap contains code for clauses and their copies
+ * created during execution
+ *
+ * the trail is an undo list for variable bindings
+ * that facilitates retrying failed goals with alternative
+ * matching clauses
+ *
+ * the unification stack ustack helps handling term unification non-recursively
+ *
+ * the spines stack contains abstractions of clauses and goals and performs the
+ * functions of both a choice-point stack and goal stack
+ *
+ * imaps: contains indexes for up to MAXIND>0 arg positions (0 for pred symbol itself)
+ *
+ * vmaps: contains clause numbers for which vars occur in indexed arg positions
+ *)
 procedure Engine.makeHeap(size: Int);
 begin
   heap := IntS.create;
@@ -419,6 +476,11 @@ begin
   top := -1
 end;
 
+(**
+ * Pushes an element - top is incremented first than the
+ * element is assigned. This means top point to the last assigned
+ * element - which can be returned with peek().
+ *)
 procedure Engine.push(i: Int);
 begin
   inc(top);
@@ -440,21 +502,7 @@ begin
   if 1 + top + more >= heap.size then
     expand
 end;
-{
-procedure dump(h: string; Wss: pTss);
-var ws: ts; w: string;
-begin
-  writeln(format('- %s (%p)',[h,wss]));
-  for ws in wss^ do
-  begin
-    writeln(format('-- %d',[ws.Count]));
-    for w in ws do
-    begin
-      writeln(format('--- %s',[w]))
-    end;
-  end;
-end;
-}
+
 procedure Engine.test_alloc(asm_nl_source: string);
   var
     Wsss: Tsss;
@@ -469,7 +517,10 @@ begin
   Wsss.free
 end;
 
-
+(**
+ * loads a program from a .nl file of
+ * "natural language" equivalents of Prolog/HiLog statements
+ *)
 function Engine.dload(s: cstr): hhClauses;
   var
     Wsss: Tsss;
@@ -570,16 +621,26 @@ begin
   Wsss.Free
 end;
 
+(**
+ * returns the heap cell another cell points to
+ *)
 function Engine.getRef(x: Int): Int;
 begin
   result := heap[detag(x)]
 end;
 
+(**
+ * sets a heap cell to point to another one
+ *)
 procedure Engine.setRef(w, r: Int);
 begin
   heap[detag(w)] := r
 end;
 
+(**
+ * encodes string constants into symbols while leaving
+ * other data types untouched
+ *)
 function Engine.encode(t: Int; s: cstr): Int;
   var w: Int;
 begin
@@ -590,6 +651,10 @@ begin
   result := tag(t, w)
 end;
 
+(**
+ * removes binding for variable cells
+ * above savedTop
+ *)
 procedure Engine.unwindTrail(savedTop: Int);
   var href: Int;
 begin
@@ -601,6 +666,11 @@ begin
   end;
 end;
 
+(**
+ * scans reference chains starting from a variable
+ * until it points to an unbound root variable or some
+ * non-variable cell
+ *)
 function Engine.deref(x: Int): Int;
   var r: Int;
 begin
@@ -623,6 +693,11 @@ begin
   end
 end;
 
+(**
+ * builds an array of embedded arrays from a heap cell
+ * representing a term for interaction with an external function
+ * including a displayer
+ *)
 function Engine.exportTerm(x: Int): Term;
   var
     t, w, a_, n_, k, i, j: Int;
@@ -670,6 +745,10 @@ begin
 end;
 {$endif}
 
+(**
+ * unification algorithm for cells X1 and X2 on ustack that also takes care
+ * to trail bindigs below a given heap address "base"
+ *)
 function Engine.unify(base: Int): boolean;
   var
     x1, x2, t1, t2, w1, w2: Int;
@@ -744,6 +823,9 @@ begin
   exit(true)
 end;
 
+(**
+ * places a clause built by the Toks reader on the heap
+ *)
 function Engine.putClause(cs, gs: IntS; neck: Int): Clause;
   var
     base, b, len, i: Int;
@@ -764,6 +846,9 @@ begin
   exit(XC)
 end;
 
+(**
+ * pushes slice[from,to] of array cs of cells to heap
+ *)
 procedure Engine.pushCells1(b, from, &to, base: Int);
   var i: Int;
 begin
@@ -780,12 +865,20 @@ begin
     push(relocate(b, cs[i]));
 end;
 
+(**
+ * copies and relocates head of clause at offset from heap to heap
+ *)
 function Engine.pushHead(b: Int; const C: Clause): Int;
 begin
   pushCells1(b, 0, C.neck, C.base);
   result := relocate(b, C.hgs[0]);
 end;
 
+(**
+ * copies and relocates body of clause at offset from heap to heap
+ * while also placing head as the first element of array gs that
+ * when returned contains references to the toplevel spine of the clause
+ *)
 procedure Engine.pushBody(b, head: Int; C: Clause);
   var
     l, k: size_t;
@@ -802,6 +895,12 @@ begin
   end;
 end;
 
+(**
+ * makes, if needed, registers associated to top goal of a Spine
+ * these registers will be reused when matching with candidate clauses
+ * note that regs contains dereferenced cells - this is done once for
+ * each goal's toplevel subterms
+ *)
 procedure Engine.makeIndexArgs(G: Spine);
   var
     goal, p, n, i, cell: Int;
@@ -846,6 +945,11 @@ begin
   exit(x)
 end;
 
+(**
+ * tests if the head of a clause, not yet copied to the heap
+ * for execution could possibly match the current goal, an
+ * abstraction of which has been place in regs
+ *)
 class function Engine.match(xs: t_xs; const C0: Clause): boolean;
   var i, x, y: Int;
 begin
@@ -861,6 +965,13 @@ begin
   result := true;
 end;
 
+(**
+ * transforms a spine containing references to choice point and
+ * immutable list of goals into a new spine, by reducing the
+ * first goal in the list with a clause that successfully
+ * unifies with it - in which case places the goals of the
+ * clause at the top of the new list of goals, in reverse order
+ *)
 function Engine.unfold: Spine;
   var
     G: Spine;
@@ -910,11 +1021,19 @@ begin
   exit(nil)
 end;
 
+(**
+ * extracts a query - by convention of the form
+ * goal(Vars):-body to be executed by the engine
+ *)
 function Engine.getQuery: Clause;
 begin
   result := clauses.back
 end;
 
+(**
+ * returns the initial spine built from the
+ * query from which execution starts
+ *)
 function Engine.init: Spine;
   var base: Int; G: Clause;
 begin
@@ -933,11 +1052,22 @@ begin
   result := new_spine(G.hgs, base, nil, -1)
 end;
 
+(**
+ * returns an answer as a Spine while recording in it
+ * the top of the trail to allow the caller to retrieve
+ * more answers by forcing backtracking
+ *)
 function Engine.answer(ttop: Int): Spine;
 begin
   exit(Spine.create(spines[0].hd, ttop))
 end;
 
+(**
+ * removes this spines for the spine stack and
+ * resets trail and heap to where they where at its
+ * creating time - while undoing variable binding
+ * up to that point
+ *)
 procedure Engine.popSpine;
 begin
   dec(spines_top);
@@ -945,6 +1075,12 @@ begin
   top := spines[spines_top].base - 1
 end;
 
+(**
+ * main interpreter loop: starts from a spine and works
+ * though a stream of answers, returned to the caller one
+ * at a time, until the spines stack is empty - when it
+ * returns null
+ *)
 function Engine.yield_: Spine;
   var
     C: Spine;
@@ -964,6 +1100,11 @@ begin
   exit(nil)
 end;
 
+(**
+ * retrieves an answers and ensure the engine can be resumed
+ * by unwinding the trail of the query Spine
+ * returns an external "human readable" representation of the answer
+ *)
 function Engine.ask: Term;
   var
     res: Int;

@@ -21,110 +21,18 @@
 testz :-
     phrase(pl_source(S), `memb(E,[E|_]).`), writeln(S).
 */
-testz :-
-    tterm(c(.,[v('E'),v('_')]),[],T,X),
-    writeln(X/T).
 testz_ :-
     tterm(c(.,[v('E'),v('_')]),[],T,X),
-    S=`memb(E,[E|_]).`,
-    phrase(pl_source([X]),S),
-    transl(X,T),
     writeln(X/T).
+testz :-
+    %tterm(c(.,[v('E'),v('_')]),[],T,X),
+    S=`memb(E,[E|_]).`,
+    phrase(pl_source(X),S),
+    [Y]=X,
+    !,
+    transl(Y,T),
+    writeln(X/Y/T).
 
-/*
-testz :-
-    transl(f(c(add,[n(0),v('X'),v('X')])),T),
-    writeln(T).
-*/
-/*
-testz :-
-    transl(r(
-               c(add,[c(s,[v('X')]),v('Y'),c(s,[v('Z')])]),
-               [c(add,[v('X'),v('Y'),v('Z')])]
-           ),T),
-    writeln(T).
-*/
-/*
-testz :-
-    tterm(c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')]),[],T,U),
-    writeln(T/U).
-*/
-/*
-testz :-
-    transl(r(c(goal,[v('R')]),
-             [c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
-    writeln(T).
-*/
-/*
-testz :-
-    transl(f(c(memb, [v('E'), l([v('E')]/v('_'))])), T),
-    writeln(T).
-*/
-/*
-testz :-
-    source_pl_source_nl(
-        `memb(E,[E|_]).`,
-        `memb E _0 and
-          _0 holds list E _1 .
-        `
-    ).
-*/
-
-/*
-testz :-
-    transl(r(c(goal,[v('R')]),[c(add,[c(s,[c(s,[n(0)])]),c(s,[c(s,[n(0)])]),v('R')])]),T),
-    writeln(T).
-*/
-/*
-testz :-
-    transl(r(c(goal,[v('E')]),[c(memb,[v('E'),l([n(0),n(1),n(2),n(3)]/nil)])]),T),
-    writeln(T).
-*/
-/*
-testz :-
-    source_pl_source_nl(
-        `goal(E):-memb(E,[0,1,2,3]).`,
-        `goal E
-         if
-          memb E _0 and
-          _0 lists 0 1 2 3 .
-        `
-    ).
-*/
-/*
-testz :-
-    zterm(c(memb, [v('E'), l([v('E')]/v('_'))]),[],T,Vs),
-    writeln(T-Vs).
-*/
-/*
-testz :-
-    transl(f(c(a,[n(1)])),T),
-    writeln(T).
-*/
-/*
-testz :-
-    transl(r(c(goal, [v('Y')]), [c(a, [v('Y')])]),T),
-    writeln(T).
-*/
-/*
-testz :-
- zterm(c(memb, [v('E'), l([n(0), n(1), n(2)]/nil)]),[],T,Vt),
- writeln(T-Vt).
-*/
-/*
-testz :-
- zargs1([v('E'), l([v('E')]/v('_'))], [], As),
- writeln(As).
-*/
-/*
-testz :-
- PlSource = `memb(E,[E|_]).`,
- phrase(pl_source([Pl]),PlSource),
- NlSource = `memb E _0 and _0 holds list E _1 .`,
- phrase(nl_source(NlExpect),NlSource),
- transl(Pl,Tr),
- Tr==NlExpect.
-*/
 boot_pl2nl(F) :-
  phrase_from_file(pl_source(Pl),F),
  maplist(writeln,Pl), !,
@@ -166,8 +74,10 @@ targs2([A|As],Vas,Vs,[A1t|A1ts],A2j,Zs) :-
  targs2(As,Uas,Us,A1ts,A2ts,Zs),
  conj(A2t,and,A2ts,A2j).
 
-hterm(n(N),_,_,Vs,N,[],Vs).
-hterm(v(V),_,_,Vs,V,[],Vs).
+%hterm(n(N),_,_,Vs,N,[],Vs).
+%hterm(v(V),_,_,Vs,V,[],Vs).
+hterm(n(N),Bs,Bs,Vs,N,[],Vs).
+hterm(v(V),Bs,Bs,Vs,V,[],Vs).
 hterm(T,[U|Us],Us,Vs,U,[U,holds|Bl],Zs) :-
  tterm(T,Vs,Bl,Zs).
 
@@ -382,6 +292,7 @@ ttest(add_loop_pl_nl) :-
         if
          add X Y Z .`
     ).
+
 test(add_goal) :-
     source_clause(
         `goal(R):-add(s(s(0)),s(s(0)),R).`,
