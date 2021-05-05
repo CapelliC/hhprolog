@@ -12,7 +12,7 @@ use crate::symstore::SymStore;
 
 use std::fs::read_to_string;
 
-use crate::recobj::RecObj;
+use crate::recobj::{RecObj, RecObjs};
 
 type Term = RecObj;
 
@@ -40,7 +40,7 @@ fn tag_of(w: Int) -> Int {
 fn is_var(x: Int) -> bool {
   tag_of(x) < 2
 }
-
+/*
 fn tag_sym(t: Int) -> char {
   match t {
     V => 'V',
@@ -56,20 +56,20 @@ fn tag_sym(t: Int) -> char {
 fn heap_cell(w: Int) -> String {
   format!("{}:{}[{}]", tag_sym(tag_of(w)), detag(w), w)
 }
-
+*/
 pub fn to_nums(clauses: &Clauses) -> IntS {
   let mut result = IntS::new();
-  for i in 0..clauses.len() - 1 {
+  for i in 0 .. clauses.len() {
     result.push(i as isize)
   }
   result
 }
-
+/*
 fn get_spine(cs: IntS) -> IntS {
   let mut result = IntS::new();
   let a = cs[1];
   let w = detag(a);
-  for i in 0..w - 1 - 1 {
+  for i in 0..w - 1 {
     let x = cs[(3 + i) as usize];
     let t = tag_of(x);
     if R != t {
@@ -79,7 +79,7 @@ fn get_spine(cs: IntS) -> IntS {
   }
   result
 }
-
+*/
 fn relocate(b: Int, cell: Int) -> Int {
   if tag_of(cell) < 3 {
     cell + b
@@ -94,7 +94,7 @@ fn relocate(b: Int, cell: Int) -> Int {
 * abstraction of which has been place in regs
 */
 fn match_(xs: &TXs, c0: &Clause) -> bool {
-  for i in 0..MAXIND - 1 {
+  for i in 0 .. MAXIND {
     let x = xs[i];
     let y = c0.xs[i];
     if (0 == x) || (0 == y) {
@@ -163,7 +163,7 @@ impl Engine {
     let s = read_to_string(asm).unwrap();
 
     let wsss = plscan::to_sentences(&s);
-    dbg!(wsss.clone());
+//    dbg!(wsss.clone());
 
     for wss in wsss.iter() {
       let mut refs = TRefs::new();
@@ -241,7 +241,8 @@ impl Engine {
       } else {
         detag(gs[1])
       };
-      let clause = self.put_clause(cs, &mut gs, neck);
+      let mut tgs = gs.clone();
+      let clause = self.put_clause(cs, &mut tgs, neck);
       self.clauses.push(clause);
     }
   }
@@ -310,7 +311,7 @@ impl Engine {
     let len = cs.len() as Int;
 
     self.push_cells2(b, 0, len, &cs);
-    for i in 0..gs.len() - 1 {
+    for i in 0 .. gs.len() {
       gs[i] = relocate(b, gs[i])
     }
     let mut xc = Clause {
@@ -382,7 +383,7 @@ impl Engine {
     let l = c.hgs.len();
     self.gs_push_body.resize(l, -1);
     self.gs_push_body[0] = head;
-    for k in 1..l - 1 {
+    for k in 1 .. l {
       let cell = c.hgs[k];
       self.gs_push_body[k] = relocate(b, cell);
     }
@@ -393,13 +394,13 @@ impl Engine {
   */
   fn push_cells1(&mut self, b: Int, from: Int, to: Int, base: Int) {
     self.ensure_size(to - from);
-    for i in from..to - 1 {
+    for i in from .. to {
       self.push(relocate(b, self.heap[(base + i) as usize]))
     }
   }
   fn push_cells2(&mut self, b: Int, from: Int, to: Int, cs: &IntS) {
     self.ensure_size(to - from);
-    for i in from..to - 1 {
+    for i in from .. to {
       self.push(relocate(b, cs[i as usize]))
     }
   }
@@ -431,7 +432,7 @@ impl Engine {
     let goal = g.gs[0];
     let p = 1 + detag(goal);
     let n = std::cmp::min(MAXIND as Int, detag(self.get_ref(goal)));
-    for i in 0..n - 1 {
+    for i in 0 .. n {
       let cell = self.deref(self.heap[(p + i) as usize]);
       g.xs[i as usize] = self.cell2index(cell) as usize
     }
@@ -462,7 +463,7 @@ impl Engine {
     self.make_index_args(&mut g);
 
     let last = g.cs.len() as Int;
-    for k in g.k .. last - 1 {
+    for k in g.k .. last {
       let c0 = self.clauses[g.cs[k as usize] as usize].clone();
       if !match_(&g.xs, &c0) {
         continue;
@@ -529,14 +530,14 @@ impl Engine {
     sp.gs.resize(req_size, -1);
     let mut y = 0;
     if gs0.len() > 0 {
-      for x in 1..gs0.len() - 1 {
+      for x in 1 .. gs0.len() {
         sp.gs[y] = gs0[x];
         y += 1
       }
     }
     if let Some(z) = rgs {
       if z.len() > 0 {
-        for x in 1..z.len() - 1 {
+        for x in 1 .. z.len() {
           sp.gs[y] = z[x];
           y += 1
         }
@@ -601,7 +602,7 @@ impl Engine {
     }
     let b1 = 1 + w1;
     let b2 = 1 + w2;
-    for i in (0..n1 - 1).rev() {
+    for i in (0 .. n1/* ?? - 1*/).rev() {
       let i1 = b1 + i;
       let i2 = b2 + i;
       let u1 = self.heap[i1 as usize];
@@ -631,6 +632,7 @@ impl Engine {
     let base = self.size();
     let g = self.get_query();
 
+    /*
     self.trail = IntStack::with_capacity(K_POOL as usize);
     self.ustack = IntStack::with_capacity(K_POOL as usize);
 
@@ -638,6 +640,14 @@ impl Engine {
     self.spines_top = 0;
 
     self.gs_push_body = IntS::with_capacity(K_PUSHBODY as usize);
+    */
+    self.trail.resize(K_POOL as usize, 0);
+    self.ustack.resize(K_POOL as usize, 0);
+
+    self.spines.resize(K_POOL as usize, Spine::new());
+    self.spines_top = 0;
+
+    self.gs_push_body.resize(K_PUSHBODY as usize, 0);
 
     self.new_spine(&g.hgs, base, None, -1)
   }
@@ -728,9 +738,10 @@ impl Engine {
           panic!("*** should be A, found={}", self.show_cell(a_))
         }
         let n_ = detag(a_);
-        let mut args = Vec::<Box::<RecObj>>::new();
+        //let mut args = Vec::<Box::<RecObj>>::new();
+        let mut args = RecObjs::new();
         let k = w + 1;
-        for i in 0 .. n_ - 1 {
+        for i in 0 .. n_ {
           let j = k + i;
           args.push(Box::new(self.export_term(self.heap[j as usize])))
         }
@@ -766,13 +777,13 @@ impl Engine {
   }
   pub fn show_cells2(&self, base: Int, len: Int) -> String {
     let mut buf = String::new();
-    for k in 0 .. len - 1 {
+    for k in 0 .. len {
       let instr = self.heap[(base + k) as usize];
       buf.push_str(&format!("[{}]{} ", base + k, self.show_cell(instr)));
     }
     buf
   }
-  
+  /*
   pub fn show_cells1(&self, cs: &IntS) -> String {
     let mut result = String::new();
     for k in 0 .. cs.len() {
@@ -780,10 +791,9 @@ impl Engine {
     }
     result
   }
-  
-  
+  */
 }
-
+/*
 pub fn create_and_dload(asm: &str) {
   let e = Engine::new(asm);
   dbg!(e);
@@ -793,3 +803,4 @@ pub fn create_and_dload(asm: &str) {
 pub fn test_create_and_dload() {
   create_and_dload("/home/carlo/develop/hhprolog/test/add.pl.nl")
 }
+*/

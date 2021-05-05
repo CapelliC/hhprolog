@@ -138,7 +138,7 @@ pub fn maybe_expand(ws: &Ts) -> Tss {
 	let n = ws.len();
 	v = sub_str(&w, 2, None);
 	rs = Ts::new();
-	for i in 1..n - 1 {
+	for i in 1 .. n {
 		if 1 == i {
 			vi = v.clone()
 		} else {

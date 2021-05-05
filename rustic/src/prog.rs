@@ -100,30 +100,14 @@ impl Engine {
     println!("TOTAL ANSWERS={}", ctr)
   }
   pub fn pp_code(&self) {
-    /*
-    let mut t = String::new();
-    for i in 0 .. self.syms.len() - 1 {
-      if i > 0 { t += ", " }
-      t += format!("{}={}", self.syms[i], i);
-    }
-    println!("\nSYMS:\n{}", t);
-    */
-    println!("\nSYMS:\n{}",
+    println!("\nSYMS:\n\n{{{}}}",
       self.syms.iter().enumerate().map(|(i, x)|
         format!("{}={}", x, i)
       ).collect::<Vec<_>>().join(", "));
 
-    /*
-    pp("\nCLAUSES:\n");
-    for (size_t i = 0; i < clauses.size(); i++) {
-        auto C = clauses[i];
-        pp(cstr("[") + i + "]:" + showClause(C));
-    }
-    pp("");
-    */
-    println!("\nCLAUSES:\n{}\n",
+    println!("\nCLAUSES:\n\n{}\n",
       self.clauses.iter().enumerate().map(|(i, x)|
-        format!("{}={}", i, self.show_clause(x))
+        format!("[{}]{}", i, self.show_clause(x))
       ).collect::<Vec<_>>().join("\n"))
   }
 
@@ -131,11 +115,11 @@ impl Engine {
     
     let l = s.hgs.len();
     
-    let mut r = format!("---base:[{}] neck: {}-----\n", s.base, s.neck);
+    let mut r = format!(":---base:[{}] neck: {}-----\n", s.base, s.neck);
     r.push_str(&self.show_cells2(s.base, s.len)); r += "\n";
-    r.push_str(&self.show_cell(s.hgs[0]));
+    r.push_str(&self.show_cell(s.hgs[0])); // r += "\n";
     r.push_str(" :- [");
-    for i in 1 .. l - 1 {
+    for i in 1 .. l {
       r.push_str(&self.show_cell(s.hgs[i]));
       if i < l - 1 {
         r.push_str(", ");
