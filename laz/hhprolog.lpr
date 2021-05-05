@@ -53,11 +53,14 @@ end;
 
 {$if 1}
 procedure test_run(pl_nl: string);
+  var t0: DWORD;
 begin
   with Prog.create(file2string(pl_nl)) do
     begin
       ppCode;
+      t0 := getTickCount64;
       run(true);
+      writeln(format('%s: done in %d msec', [pl_nl, getTickCount64 - t0]));
       Free
     end;
 end;

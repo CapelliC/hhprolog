@@ -22,8 +22,8 @@ testz :-
     phrase(pl_source(S), `memb(E,[E|_]).`), writeln(S).
 */
 testz_ :-
-    tterm(c(.,[v('E'),v('_')]),[],T,X),
-    writeln(X/T).
+    tterm(c(.,[v('E'),v('_')]),[],T,Vs),
+    writeln(Vs/T).
 testz :-
     %tterm(c(.,[v('E'),v('_')]),[],T,X),
     S=`memb(E,[E|_]).`,
