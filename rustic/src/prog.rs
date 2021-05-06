@@ -42,7 +42,7 @@ fn st0(args: &Terms) -> String {
         }
         match tail {
           Term::A(list) => {
-            if ! (list.len() == 3 && is_list_cons(&*list[0].to_string())) {
+            if !( list.len() == 3 && is_list_cons(&*list[0].to_string()) ) {
               r += "|";
               r += &maybe_null(tail);
               break
@@ -72,13 +72,13 @@ fn st0(args: &Terms) -> String {
         let qname = maybe_null(&*args[0]);
         r += &qname;
         r += "(";
-        for i in 1 .. args.len() - 1 {
-          r = r + &maybe_null(&*args[i]);
+        for i in 1 .. args.len() {
+          r += &maybe_null(&*args[i]);
           if i < args.len() - 1 {
-            r = r + ","
+            r += ","
           }
         }
-        r = r + ")"
+        r += ")"
       }
   }
   r
@@ -117,7 +117,7 @@ impl Engine {
     
     let mut r = format!(":---base:[{}] neck: {}-----\n", s.base, s.neck);
     r.push_str(&self.show_cells2(s.base, s.len)); r += "\n";
-    r.push_str(&self.show_cell(s.hgs[0])); // r += "\n";
+    r.push_str(&self.show_cell(s.hgs[0]));
     r.push_str(" :- [");
     for i in 1 .. l {
       r.push_str(&self.show_cell(s.hgs[i]));
@@ -125,20 +125,17 @@ impl Engine {
         r.push_str(", ");
       }
     }
-  
-    r.push_str("]");
+    r.push_str("]\n");
   
     r.push_str(&self.show_term_i(s.hgs[0]));
     if l > 1 {
       r.push_str(" :- \n");
-      for i in 1 .. l - 1 {
+      for i in 1 .. l {
         r.push_str("  ");
         r.push_str(&self.show_term_i(s.hgs[i]));
       }
     }
-    else {
-      r.push_str("\n");
-    }
+    r.push_str("\n");
     
     r
   }
@@ -146,6 +143,7 @@ impl Engine {
     match o {
     Term::I(i)  => self.show_term_i(*i),
     Term::A(a)  => st0(a),
+    Term::S(s)  => s.clone(),
     _           => o.to_string()
     }
   }

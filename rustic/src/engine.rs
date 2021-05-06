@@ -632,15 +632,16 @@ impl Engine {
     let base = self.size();
     let g = self.get_query();
 
-    /*
     self.trail = IntStack::with_capacity(K_POOL as usize);
     self.ustack = IntStack::with_capacity(K_POOL as usize);
 
-    self.spines = Spines::with_capacity(K_POOL as usize);
+    //self.spines = Spines::with_capacity(K_POOL as usize);
+    self.spines.resize(K_POOL as usize, Spine::new());
     self.spines_top = 0;
 
     self.gs_push_body = IntS::with_capacity(K_PUSHBODY as usize);
-    */
+
+    /*
     self.trail.resize(K_POOL as usize, 0);
     self.ustack.resize(K_POOL as usize, 0);
 
@@ -648,7 +649,7 @@ impl Engine {
     self.spines_top = 0;
 
     self.gs_push_body.resize(K_PUSHBODY as usize, 0);
-
+    */
     self.new_spine(&g.hgs, base, None, -1)
   }
 
@@ -703,12 +704,14 @@ impl Engine {
    * returns an external "human readable" representation of the answer
    */
   pub fn ask(&mut self) -> Term {
-    match self.yield_() {
+    let y = self.yield_();
+    match y {
       Some(q) => {
         let ans = self.answer(q.ttop);
         let res = ans.hd;
         let result = self.export_term(res);
         self.unwind_trail(q.ttop);
+        self.query = None;
         result
       }
       _ => {
