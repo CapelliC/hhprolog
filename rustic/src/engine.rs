@@ -482,7 +482,9 @@ impl Engine {
 
       self.push_body(b, head, &c0);
       g.k = k + 1;
-      if (self.gs_push_body.len() > 1) || (self.spines[self.spines_top - 1].gs.len() > 1) {
+      self.spines[self.spines_top - 1].k = g.k;
+
+      if self.gs_push_body.len() > 1 || g.gs.len() > 1 {
         let p = self.gs_push_body.clone();
         let s = self.new_spine(&p, base, Some(&g.gs), ttop);
         return Some(s);
@@ -527,6 +529,7 @@ impl Engine {
         req_size = req_size + x.len() - 1
       }
     }
+
     sp.gs.resize(req_size, -1);
     let mut y = 0;
     if gs0.len() > 0 {
