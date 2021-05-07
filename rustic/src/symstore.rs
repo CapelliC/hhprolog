@@ -13,20 +13,3 @@ impl SymStore for Vec<String> {
     }
   }
 }
-
-#[test]
-pub fn test_2() {
-  let mut s = Vec::<String>::new();
-
-  let x = s.memo("x");
-  assert_eq!(x, 0);
-
-  let y = s.memo("y");
-  assert_eq!(y, 1);
-
-  let a = s.memo("a");
-  assert_eq!(a, 2);
-
-  let x1 = s.memo("x");
-  assert_eq!(x, x1);
-}

@@ -1,13 +1,11 @@
 use crate::base_types::{
   Clause, Spine,
-  Cardinal, Int, IntList, IntS, IntStack, Refs, TRefs, TXs,
+  Cardinal, Int, IntList, IntS, IntStack, Refs, TRefs, //TXs,
   MAXIND, MINSIZE,
 };
 
 use crate::plscan;
 use crate::plscan::{map_expand, sub_str};
-//use crate::clause::Clause;
-//use crate::spine::Spine;
 use crate::symstore::SymStore;
 
 use std::fs::read_to_string;
@@ -92,7 +90,6 @@ fn relocate(b: Int, cell: Int) -> Int {
 * tests if the head of a clause, not yet copied to the heap
 * for execution could possibly match the current goal, an
 * abstraction of which has been place in regs
-*/
 fn match_(xs: &TXs, c0: &Clause) -> bool {
   for i in 0 .. MAXIND {
     let x = xs[i];
@@ -106,6 +103,7 @@ fn match_(xs: &TXs, c0: &Clause) -> bool {
   }
   true
 }
+*/
 
 type Clauses = Vec<Clause>;
 type Spines = Vec<Spine>;
@@ -424,6 +422,7 @@ impl Engine {
       i += 1
     }
   }
+
   fn make_index_args(&self, g: &mut Spine) {
     if g.xs[0] != 0 {
       return;
@@ -465,9 +464,10 @@ impl Engine {
     let last = g.cs.len() as Int;
     for k in g.k .. last {
       let c0 = self.clauses[g.cs[k as usize] as usize].clone();
-      if !match_(&g.xs, &c0) {
-        continue;
+      if !g.match_i(&c0) {
+        continue
       }
+
       let base0 = base - c0.base;
       let b = tag(V, base0);
       let head = self.push_head(b, &c0);

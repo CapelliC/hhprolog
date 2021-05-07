@@ -7,15 +7,17 @@ mod symstore;
 mod base_types;
 
 fn main() {
-  //test_0();
-  //test_1();
-  //test_2();
-  //test_3();
-  //test_4();
+  let mut src = "add".to_string();
+  let a = std::env::args().collect::<Vec<_>>();
+  if a.len() >= 2 {
+    src = a[1].clone()
+  }
 
-  let f = "/home/carlo/develop/hhprolog/test/add.pl.nl";
-  //create_and_dload(f);
-  let mut e = engine::Engine::new(f);
+  let f = format!("/home/carlo/develop/hhprolog/test/{}.pl.nl", src);
+  let mut e = engine::Engine::new(&f);
+
   e.pp_code();
-  e.run(true);
+
+  let print_sol = a.len() >= 3 && a[2] == "true";
+  e.run(print_sol);
 }

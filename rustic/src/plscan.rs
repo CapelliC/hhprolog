@@ -79,40 +79,6 @@ pub fn to_sentences(s: &str) -> Tsss {
 	wsss
 }
 
-#[test]
-pub fn test_3() {
-	fn tokenize(s: &str) -> Vec<PlTok> {
-		tokenizer().tokens(s).collect()
-	}
-
-	let t = tokenize("if A and b listsx lists -123");
-	dbg!(&t);
-	assert_eq!(
-		t,
-		vec![
-			PlTok::IF,
-			PlTok::VAR("A"),
-			PlTok::AND,
-			PlTok::ATOM("b"),
-			PlTok::ATOM("listsx"),
-			PlTok::LISTS,
-			PlTok::NUM(-123),
-		]
-	);
-	dbg!(&t);
-}
-
-#[test]
-pub fn test_4() {
-	let g = to_sentences(
-		r"
-    add 0 X X .
-    add 100 x z .
-    ",
-	);
-	dbg!(g);
-}
-
 pub fn sub_str(s: &str, b: usize, e: Option<usize>) -> String {
 	match e {
 		Some(y) => s.chars().skip(b).take(y).collect::<String>(),

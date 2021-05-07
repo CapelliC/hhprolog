@@ -99,6 +99,7 @@ impl Engine {
     }
     println!("TOTAL ANSWERS={}", ctr)
   }
+  
   pub fn pp_code(&self) {
     println!("\nSYMS:\n\n{{{}}}",
       self.syms.iter().enumerate().map(|(i, x)|

@@ -18,16 +18,6 @@ impl Refs for TRefs {
   }
 }
 
-#[test]
-fn test_1() {
-  let mut x = TRefs::new();
-  let k = "x".to_owned();
-  x.insert(k.clone(), vec![1,2,3]);
-  x.entry(k.clone()).or_default().push(4);
-  x.at(k.clone()).push(6);
-  dbg!(x);
-}
-
 pub const MINSIZE:usize = 1 << 15;
 //pub const START_INDEX:usize = 20;
 
@@ -84,4 +74,24 @@ impl Spine {
   pub fn has_goals(&self) -> bool {
     self.gs.len() > 0
   }
+  
+  /**
+  * tests if the head of a clause, not yet copied to the heap
+  * for execution could possibly match the current goal, an
+  * abstraction of which has been place in regs
+  */
+  pub fn match_i(&self, c0: &Clause) -> bool {
+    for i in 0 .. MAXIND {
+      let x = self.xs[i];
+      let y = c0.xs[i];
+      if (0 == x) || (0 == y) {
+        continue;
+      }
+      if x != y {
+        return false;
+      }
+    }
+    true
+  }
+  
 }
