@@ -264,14 +264,14 @@ var scripts = {
       place_queens([],_,_,_).
       place_queens([I|Is],Cs,Us,[_|Ds]):-
         place_queens(Is,Cs,[_|Us],Ds),
-        place_queen(I,Cs,Us,Ds).
+          place_queen(I,Cs,Us,Ds).
 
       gen_places([],[]).
       gen_places([_|Qs],[_|Ps]):-gen_places(Qs,Ps).
 
       qs(Qs,Ps):-gen_places(Qs,Ps),place_queens(Qs,Ps,_,_).
 
-      goal(Ps):-qs([0,1,2,3,4],Ps).
+      goal(Ps):-qs([0,1,2,3,4,5,6,7,8,9],Ps).
     `,
     nl: `
       place_queen I _0 _1 _2 and
@@ -312,7 +312,7 @@ var scripts = {
       goal Ps 
       if
         qs _0 Ps and
-        _0 lists 0 1 2 3 4 .
+        _0 lists 0 1 2 3 4 5 6 7 8 9 .
     `
   },
 

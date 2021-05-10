@@ -277,7 +277,7 @@ impl Engine {
    * above savedTop
    */
   fn unwind_trail(&mut self, saved_top: Int) {
-    while (saved_top as usize) < self.trail.len() - 1 {
+    while saved_top < self.trail.len() as Int - 1 {
       let href = self.trail.pop().unwrap();
       self.set_ref(href, href);
     }
