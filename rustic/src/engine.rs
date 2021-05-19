@@ -115,7 +115,7 @@ pub struct Engine {
   pub clauses: Clauses, // = Vec<Clause>::new()
 
   cls: IntS,
-  heap: IntS,
+  pub heap: IntS,
   top: Int, //  = -1;
   trail: IntStack,
   ustack: IntStack,
@@ -309,6 +309,7 @@ impl Engine {
     let len = cs.len() as Int;
 
     self.push_cells2(b, 0, len, &cs);
+
     for i in 0 .. gs.len() {
       gs[i] = relocate(b, gs[i])
     }
@@ -322,7 +323,7 @@ impl Engine {
     self.get_indexables(gs[0], &mut xc);
     xc
   }
-  fn size(&self) -> Int {
+  pub fn size(&self) -> Int {
     self.top + 1
   }
 
@@ -561,8 +562,6 @@ impl Engine {
       let x1 = self.deref(z1);
       let x2 = self.deref(z2);
       if x1 != x2 {
-        let t1 = tag_of(x1);
-        let t2 = tag_of(x2);
         let w1 = detag(x1);
         let w2 = detag(x2);
         if is_var(x1) {
@@ -582,7 +581,7 @@ impl Engine {
           if w2 <= base {
             self.trail.push(x2)
           }
-        } else if (R == t1) && (R == t2) {
+        } else if R == tag_of(x1) && R == tag_of(x2) {
           if !self.unify_args(w1, w2) {
             return false;
           }
@@ -638,21 +637,11 @@ impl Engine {
     self.trail = IntStack::with_capacity(K_POOL as usize);
     self.ustack = IntStack::with_capacity(K_POOL as usize);
 
-    //self.spines = Spines::with_capacity(K_POOL as usize);
     self.spines.resize(K_POOL as usize, Spine::new());
     self.spines_top = 0;
 
     self.gs_push_body = IntS::with_capacity(K_PUSHBODY as usize);
 
-    /*
-    self.trail.resize(K_POOL as usize, 0);
-    self.ustack.resize(K_POOL as usize, 0);
-
-    self.spines.resize(K_POOL as usize, Spine::new());
-    self.spines_top = 0;
-
-    self.gs_push_body.resize(K_PUSHBODY as usize, 0);
-    */
     self.new_spine(&g.hgs, base, None, -1)
   }
 
@@ -789,7 +778,7 @@ impl Engine {
     }
     buf
   }
-  /*
+/*
   pub fn show_cells1(&self, cs: &IntS) -> String {
     let mut result = String::new();
     for k in 0 .. cs.len() {
@@ -797,7 +786,14 @@ impl Engine {
     }
     result
   }
-  */
+
+  pub fn pp_heap(&self) {
+    println!("\nHEAP:\n\n{}\n",
+      self.heap.iter().take(self.size() as usize).enumerate().map(|(i, x)|
+        format!("[{}]{}", i, self.show_cell(*x))
+      ).collect::<Vec<_>>().join("\n"))
+  }
+*/
 }
 /*
 pub fn create_and_dload(asm: &str) {

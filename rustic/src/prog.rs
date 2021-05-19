@@ -68,18 +68,18 @@ fn st0(args: &Terms) -> String {
       r += &*args[1].to_string()
     }
     else
-      {
-        let qname = maybe_null(&*args[0]);
-        r += &qname;
-        r += "(";
-        for i in 1 .. args.len() {
-          r += &maybe_null(&*args[i]);
-          if i < args.len() - 1 {
-            r += ","
-          }
+    {
+      let qname = maybe_null(&*args[0]);
+      r += &qname;
+      r += "(";
+      for i in 1 .. args.len() {
+        r += &maybe_null(&*args[i]);
+        if i < args.len() - 1 {
+          r += ","
         }
-        r += ")"
       }
+      r += ")"
+    }
   }
   r
 }
@@ -87,6 +87,7 @@ fn st0(args: &Terms) -> String {
 impl Engine {
   pub fn run(&mut self, print_ans: bool) {
     let mut ctr = 0;
+    let now = std::time::Instant::now();
     loop {
       let a = self.ask();
       if let E = a {
@@ -97,7 +98,7 @@ impl Engine {
         println!("{} *** ANSWER={}", ctr, self.show_term_o(&a))
       }
     }
-    println!("TOTAL ANSWERS={}", ctr)
+    println!("TOTAL ANSWERS={} in {} msec", ctr, now.elapsed().as_millis())
   }
   
   pub fn pp_code(&self) {
