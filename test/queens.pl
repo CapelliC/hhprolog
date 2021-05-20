@@ -11,5 +11,5 @@ gen_places([_|Qs],[_|Ps]):-gen_places(Qs,Ps).
 
 qs(Qs,Ps):-gen_places(Qs,Ps),place_queens(Qs,Ps,_,_).
 
-goal(Ps):-qs([0,1,2,3],Ps).
-% goal(Ps):-qs([0,1,2,3,4,5,6,7,8,9],Ps).
+% goal(Ps):-qs([0,1,2,3],Ps).
+goal(Ps):-qs([0,1,2,3,4,5,6,7,8,9],Ps).

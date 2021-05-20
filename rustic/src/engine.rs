@@ -493,7 +493,6 @@ impl Engine {
         return Some(self.answer(ttop));
       }
     }
-    //exit(nil)
     None
   }
 
