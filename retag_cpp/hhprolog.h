@@ -23,8 +23,8 @@ using namespace std;
 
 typedef const string cstr;
 
-typedef long Int;
-typedef unsigned long UInt;
+typedef int32_t Int;
+typedef uint32_t UInt;
 
 template <typename T>
 struct js_vect: vector<T> {
@@ -164,15 +164,15 @@ struct Spine {
 
 struct Tagger {
     const static UInt
-        V	= 0x0000000000000000,
-        U	= 0x1000000000000000,
-        R   = 0x2000000000000000,
-        C	= 0x3000000000000000,
-        N	= 0x4000000000000000,
-        A	= 0x5000000000000000,
-        BAD	= 0x7000000000000000,
-        MSK	= 0xF000000000000000,
-        TFU = 0x0800000000000000;
+        V	= 0x00000000,
+        U	= 0x10000000,
+        R   = 0x20000000,
+        C	= 0x30000000,
+        N	= 0x40000000,
+        A	= 0x50000000,
+        BAD	= 0x70000000,
+        MSK	= 0xF0000000,
+        TFU = 0x08000000;
 
     static inline UInt tag(UInt t, UInt w) {
         return t | (w & ~MSK);
@@ -265,7 +265,7 @@ protected:
     inline UInt getRef(UInt x) const { return heap[detag(x)]; }
     inline void setRef(UInt w, UInt r) { heap[detag(w)] = r; }
     inline UInt encode(UInt t, cstr s) {
-        UInt w = C == t ? addSym(s) : stoul(s);
+        UInt w = C == t ? addSym(s) : UInt(stol(s));
         return tag(t, w);
     }
     void unwindTrail(UInt savedTop);
@@ -311,7 +311,7 @@ protected:
     }
     string showCells1(UIntS cs) const {
         string buf;
-        for (size_t k = 0; k < cs.size(); k++)
+        for (UInt k = 0; k < cs.size(); k++)
             buf += cstr("[") + k + "]" + showCell(cs[k]) + " ";
         return buf;
     }
@@ -376,7 +376,7 @@ protected:
             return;
         //var T = JSON.stringify
         imaps = t_imaps(vmaps.size());
-        for (size_t i = 0; i < clauses.size(); i++) {
+        for (UInt i = 0; i < clauses.size(); i++) {
             Clause c = clauses[i];
             //pp("!!!xs=" + T(c.xs) + ":" + this.showCells1(c.xs) + "=>" + i)
             put(c.xs, i + 1); // $$$ UGLY INC
@@ -416,7 +416,7 @@ protected:
     }
     void ppc(Spine S) const {
         auto bs = S.gs;
-        pp(cstr("\nppc: t=") + S.ttop + ",k=" + S.k + "len=" + bs.size());
+        pp(cstr("\nppc: t=") + S.ttop + ",k=" + S.k + "len=" + UInt(bs.size()));
         ppGoals(bs);
     }
 

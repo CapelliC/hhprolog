@@ -1,0 +1,19 @@
+LOC = ../cpp
+
+%.o: %.cpp
+	emcc -c -I$(LOC) $^
+
+hhprolog.html: main.o toks.o engine.o prog.o
+	emcc -o $@ $^
+
+main.o: $(LOC)/main.cpp
+	emcc -c -I$(LOC) $^
+
+toks.o: $(LOC)/toks.cpp
+	emcc -c -I$(LOC) $^
+
+engine.o: $(LOC)/engine.cpp
+	emcc -c -I$(LOC) $^
+
+prog.o: $(LOC)/prog.cpp
+	emcc -c -I$(LOC) $^

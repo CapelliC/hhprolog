@@ -1,0 +1,5 @@
+LOC = ../cpp
+SRC = $(LOC)/main.cpp $(LOC)/toks.cpp $(LOC)/engine.cpp $(LOC)/prog.cpp
+
+hhprolog.html: $(SRC)
+	emcc -I$(LOC) -O2 -o hhprolog.html $(SRC)

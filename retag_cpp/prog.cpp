@@ -30,14 +30,14 @@ namespace hhprolog {
 
     void Prog::ppCode() const {
         string t;
-        for (size_t i = 0; i < syms.size(); i++) {
+        for (UInt i = 0; i < syms.size(); i++) {
             if (i > 0) t += ", ";
             t += syms[i] + "=" + i;
         }
         pp("\nSYMS:\n{" + t + "}");
 
         pp("\nCLAUSES:\n");
-        for (size_t i = 0; i < clauses.size(); i++) {
+        for (UInt i = 0; i < clauses.size(); i++) {
             auto C = clauses[i];
             pp(cstr("[") + i + "]:" + showClause(C));
         }
@@ -54,7 +54,7 @@ namespace hhprolog {
     string Prog::showClause(const Clause &s) const {
         string r;
 
-        UInt l = s.hgs.size();
+        UInt l = UInt(s.hgs.size());
         r += cstr("---base:[") + s.base + "] neck: " + s.neck + "-----\n";
         r += showCells2(s.base, s.len); // TODO
         r += "\n";

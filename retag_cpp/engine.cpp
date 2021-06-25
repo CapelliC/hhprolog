@@ -464,7 +464,7 @@ void Engine::ppHeap() {
 
     pp("\nHEAP:\n");
     string h;
-    for (size_t i = 0; i < size(); i++) {
+    for (UInt i = 0; i < size(); i++) {
         pp(cstr("[") + i + "]:" + showCell(heap[i]));
     }
 }
