@@ -6,22 +6,30 @@ OBJS = toks.o engine.o prog.o
 #	emcc -o $@ $^
 
 mini.html: mini.o $(OBJS)
-	emcc -o $@ $^ --emrun --preload-file tests/mini.pl.nl
+	emcc -O2 -o $@ $^ --emrun --preload-file tests/mini.pl.nl
+
+queens10.html: queens10.o $(OBJS)
+	emcc -O2 -o $@ $^ --emrun --preload-file tests/queens10.pl.nl
 
 #main.o: $(LOC)/main.cpp
 #	emcc -c -I$(LOC) $^
 
 mini.o: mini.cpp
-	emcc -c -I$(LOC) $^
+	emcc -O2 -c -I$(LOC) $^
+
+queens10.o: queens10.cpp
+	emcc -O2 -c -I$(LOC) $^
+
+
 
 toks.o: $(LOC)/toks.cpp
-	emcc -c -I$(LOC) $^
+	emcc -O2 -c -I$(LOC) $^
 
 engine.o: $(LOC)/engine.cpp
-	emcc -c -I$(LOC) $^
+	emcc -O2 -c -I$(LOC) $^
 
 prog.o: $(LOC)/prog.cpp
-	emcc -c -I$(LOC) $^
+	emcc -O2 -c -I$(LOC) $^
 
 clean:
 	rm *.o *.wasm *.js *.html *.data
