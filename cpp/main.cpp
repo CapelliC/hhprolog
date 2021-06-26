@@ -18,12 +18,11 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     try {
-        string path = "../test/";
         string fname;
         bool print_ans;
 
         if (argc == 1) {
-            fname = "perms.pl";
+            fname = "../test/perms.pl";
             print_ans = false;
         }
         else {
@@ -31,8 +30,10 @@ int main(int argc, char *argv[])
             print_ans = argc == 3 ? string(argv[2]) == "true" : false;
         }
 
+        string pl_nl = fname + ".nl";
+        
         // assume SWI-Prolog already takes care of .pl => .pl.nl
-        auto p = new hhprolog::Prog(file2string(path + fname + ".nl"));
+        auto p = new hhprolog::Prog(file2string(pl_nl));
         p->ppCode();
 
         { using namespace chrono;

@@ -1,26 +1,27 @@
 LOC = ../cpp
-#OBJS = main.o toks.o engine.o prog.o
 OBJS = toks.o engine.o prog.o
 
-#hhprolog.html: $(OBJS)
-#	emcc -o $@ $^
+# hardcoded scripts
 
 mini.html: mini.o $(OBJS)
 	emcc -O2 -o $@ $^ --emrun --preload-file tests/mini.pl.nl
 
-queens10.html: queens10.o $(OBJS)
-	emcc -O2 -o $@ $^ --emrun --preload-file tests/queens10.pl.nl
-
-#main.o: $(LOC)/main.cpp
-#	emcc -c -I$(LOC) $^
-
 mini.o: mini.cpp
 	emcc -O2 -c -I$(LOC) $^
+
+queens10.html: queens10.o $(OBJS)
+	emcc -O2 -o $@ $^ --emrun --preload-file tests/queens10.pl.nl
 
 queens10.o: queens10.cpp
 	emcc -O2 -c -I$(LOC) $^
 
+# CLI script selection
 
+hhprolog.html: main.o $(OBJS)
+	emcc -O2 -o $@ $^ --emrun --preload-file tests
+
+main.o: $(LOC)/main.cpp
+	emcc -O2 -c -I$(LOC) $^
 
 toks.o: $(LOC)/toks.cpp
 	emcc -O2 -c -I$(LOC) $^
